@@ -1,0 +1,2 @@
+D:\Users\SteveZL\Desktop\Lab1-Windows-VS2017\Debug\datalink.exe
+D:\Users\SteveZL\Desktop\Lab1\Debug\datalink.exe
