@@ -1,2 +1,2 @@
 # bupt-assignments
-Some of my assignments at bupt as a 21st grade undergraduate
+这是我在北邮作为21级本科生时，完成的一些课设、大作业的源代码，也包含一些课程的资料信息
