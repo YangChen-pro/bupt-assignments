@@ -1,0 +1,777 @@
+%!TEX program = xelatex
+% 完整编译: xelatex -> biber/bibtex -> xelatex -> xelatex
+\documentclass[lang=cn,11pt,a4paper]{elegantpaper}
+
+\title{词法分析程序的设计与实现}
+\author{杨晨 \\学号2021212171}
+\institute{北京邮电大学 计算机学院}
+
+% \version{0.10}
+\date{2023年10月1日}
+
+% 本文档命令
+\usepackage{array}
+\usepackage{xcolor}
+\newcommand{\ccr}[1]{\makecell{{\color{#1}\rule{1cm}{1cm}}}}
+
+% 定义关键字和注释的颜色
+\definecolor{codegreen}{RGB}{34,139,34}
+\definecolor{codegray}{RGB}{128,128,128}
+\definecolor{codepurple}{RGB}{138,43,226}
+\definecolor{backcolour}{RGB}{240,240,240}
+
+% 定义代码样式
+\lstset{
+    language=C++, % 设置代码语言为C++
+    basicstyle=\ttfamily, % 设置基本字体样式为等宽字体
+    backgroundcolor=\color{gray!10}, % 设置代码块背景颜色为白色
+    commentstyle=\color{green!60!black}, % 设置注释颜色
+    keywordstyle=\color{blue}, % 设置关键字颜色
+    % stringstyle=\color{orange}, % 设置字符串颜色
+    showstringspaces=false, % 不显示字符串中的空格符
+    breaklines=true, % 自动断行
+    % numbers=left, % 行号显示在左侧
+    numberstyle=\small\color{gray}, % 设置行号样式
+    frame=single, % 绘制代码框
+    rulecolor=\color{black}, % 设置代码框颜色
+    captionpos=b, % 设置标题位置为底部
+    tabsize=4, % 设置制表符宽度
+    keywordstyle=[1]\color{blue}, % 设置关键字样式
+    keywordstyle=[2]\color{purple}, % 设置扩展关键字样式
+    keywordstyle=[3]\color{teal}, % 设置内置类型样式
+    keywordstyle=[4]\color{magenta}, % 设置注解样式
+    keywordstyle=[5]\color{orange}, % 设置预处理指令样式
+    keywordstyle=[6]\color{cyan!60!black}, % 设置其他关键字样式
+    keywordstyle=[7]\color{violet}, % 设置特殊关键字样式
+}
+
+
+\begin{document}
+
+
+\maketitle
+\tableofcontents
+
+\section{概述}
+
+\subsection{实验内容}
+
+\begin{enumerate}
+    \item 选定源语言，c语言
+    \item 可以识别出用源语言编写的源程序中的每个单词符号，并以记号的形式输出每个单词符号。
+    \item 可以识别并跳过源程序中的注释。
+    \item 可以统计源程序中的语句行数、各类单词的个数、以及字符总数，并输出统计结果。
+    \item 检查源程序中存在的词法错误，并报告错误所在的位置。
+    \item 对源程序中出现的错误进行适当的恢复，使词法分析可以继续进行，对源程序进行一次扫描，即可检查并报告源程序中存在的所有词法错误。
+\end{enumerate}
+
+\subsection{开发环境}
+
+\begin{itemize}
+    \item Windows10
+    \item Visual Studio Code
+    \item Win flex-bison
+\end{itemize}
+
+\section{程序的功能模块划分}
+
+\subsection{常见的标记模式和正则表达式}
+
+
+\begin{lstlisting}
+O   [0-7]  
+D   [0-9] 
+NZ  [1-9] 
+L   [a-zA-Z_] 
+A   [a-zA-Z_0-9] 
+H   [a-fA-F0-9] 
+HP  (0[xX]) 
+E   ([Ee][+-]?{D}+) 
+P   ([Pp][+-]?{D}+) 
+FS  (f|F|l|L) 
+IS  (((u|U)(l|L|ll|LL)?)|((l|L|ll|LL)(u|U)?)) 
+CP  (u|U|L) 
+SP  (u8|u|U|L) 
+ES  (\\(['"\?\\abfnrtv]|[0-7]{1,3}|x[a-fA-F0-9]+)) 
+NE  [^"\\\n] 
+WS  [ \t\v\f]
+\end{lstlisting}
+
+这段代码用于定义一些常见的标记模式和正则表达式。下面是对每个定义的模式的详细解释：
+
+\begin{itemize}
+    \item O: 匹配八进制数字的字符集，范围从0到7。
+    \item D: 匹配十进制数字的字符集，范围从0到9。
+    \item NZ: 匹配非零的十进制数字的字符集，范围从1到9。
+    \item L: 匹配字母、下划线的字符集，包括小写字母、大写字母和下划线。
+    \item A: 匹配字母、数字、下划线的字符集，包括小写字母、大写字母、数字和下划线。
+    \item H: 匹配十六进制数字的字符集，包括小写字母、大写字母和数字。
+    \item HP: 匹配十六进制数的前缀，即以"0x"或"0X"开头。
+    \item E: 匹配浮点数中的指数部分，包括可选的正负号，后面跟着十进制数字。
+    \item P: 匹配浮点数中的十六进制指数部分，包括可选的正负号，后面跟着十六进制数字。
+    \item FS: 匹配浮点数类型后缀，可以是"f"、"F"、"l"或"L"。
+    \item IS: 匹配整数类型后缀，可以是各种组合，如"u"、"U"、"l"、"L"、"ll"、"LL"等。
+    \item CP: 匹配字符类型后缀，可以是"u"、"U"或"L"。
+    \item SP: 匹配字符串类型前缀，可以是"u8"、"u"、"U"或"L"。
+    \item ES: 匹配转义序列，包括转义字符（如"\char`\\n"、"\char`\\t"等）、八进制字符（如"\char`\\377"）和十六进制字符（如"\char`\\xFF"）。
+    \item NE: 匹配非转义字符和换行符的字符集。
+    \item WS: 匹配空白字符，包括空格、制表符、垂直制表符和换页符。
+\end{itemize}
+
+\subsection{声明部分}
+
+\begin{lstlisting}
+%{
+#include <stdio.h>
+
+/* C token types */
+#define KEYWORD 1
+#define IDENTIFIER 2
+#define I_CONSTANT 3 // integer constant
+#define F_CONSTANT 4 // floating constant
+#define C_CONSTANT 5 // character constant
+#define STRING_LITERAL 6
+#define PUNCTUATOR 7
+
+/* statistics */
+int charCount = 0;
+int lineCount = 1;
+int columnCount = 1;
+int keywordCount = 0;
+int identifierCount = 0;
+int integerConst = 0;
+int floatingConst = 0;
+int charConst = 0;
+int stringCount = 0;
+int punctuatorCount = 0;
+int errorCount = 0;
+
+/* handle errors */
+void yyerror(const char *);
+
+/* handle multi-line comments */
+static void isComment(void);
+%}
+\end{lstlisting}
+
+这段代码是使用Lex工具编写的C语言词法分析器，用于识别和分类C语言源代码中的不同词法单元，如关键字、标识符、常量、字符串、标点符号等。让我们对其进行详细解释：
+
+%{ 和 %}：这些符号用于将C代码插入到Lex规则之间，以便在生成的词法分析器中包含所需的C代码。
+
+\lstinline{#include <stdio.h>}这是C语言中的预处理指令，用于包含标准输入输出库的头文件\lstinline{#include <stdio.h>}，以便在词法分析器中使用\lstinline{printf}和其他相关函数。
+
+定义C语言中的不同令牌类型：这一系列\lstinline{#define}语句定义了常量，用于标识C语言中的不同token类型，如关键字、标识符、常量、字符串和标点符号。
+
+统计信息变量：这些变量用于统计分析结果，如字符数、行数、列数、关键字数、标识符数、常量数、字符串数、标点符号数和错误数。
+
+\lstinline{void yyerror(const char *)}这是一个函数原型，用于输出错误和详细信息。
+
+\lstinline{static void isComment(void)}这是一个静态函数，用于处理注释。
+
+上述代码片段中的内容是Lex工具的规则部分之前的全局声明和定义部分。在Lex工具中，通过在规则部分使用正则表达式来匹配输入的文本，并在匹配到特定模式时执行相应的动作。
+
+\subsection{翻译规则部分}
+
+\subsubsection{继续解析}
+\begin{lstlisting}
+"\n"   { lineCount++; columnCount=0; return -1; } /* wrap */
+"/*"   { isComment(); return -1; }   /* multi-line comment begins */
+"//".* { return -1; }  /* single-line comment */
+"#".+  { return -1; }  /* preprocessor directive */
+{WS}   {return -1;}    /* white space */
+\end{lstlisting}
+
+在Lex中，规则可以返回一个整数值，用于指示词法分析器采取的下一个操作。通常情况下，返回-1表示继续解析，而返回其他值可能表示要进行一些特定的操作或者终止解析过程。上述代码的作用如下：
+\begin{itemize}
+    \item 当遇到换行符（\lstinline{"\n"}）时，会执行相应的动作。动作是递增lineCount变量（表示行数）并将columnCount变量（表示列数）重置为0。
+    \item 当遇到换行符（\lstinline{"\n"}）时，会执行相应的动作。动作是递增lineCount变量（表示行数）并将columnCount变量（表示列数）重置为0。
+    \item 当遇到以\lstinline{"//"}开头的注释时要执行的操作。它匹配从\lstinline{"//"}开始的任意字符序列（\lstinline{.*}表示匹配任意字符零次或多次）
+    \item 当遇到以\lstinline{"#"}开头的预处理指令时要执行的操作。它匹配以\lstinline{"#"}开头的任意字符序列（\lstinline{.+}表示匹配任意字符至少一次）
+    \item 当遇到空字符时，跳过。
+\end{itemize}
+
+\subsubsection{关键字}
+\begin{lstlisting}
+"auto"					{ return KEYWORD; } /* keywords */
+"break"					{ return KEYWORD; }
+"case"					{ return KEYWORD; }
+...
+"_Static_assert"        { return KEYWORD; }
+"_Thread_local"         { return KEYWORD; }
+"__func__"              { return KEYWORD; }
+\end{lstlisting}
+
+这段Lex代码用于匹配并返回C语言中的关键字。每行定义了一个关键字，例如"auto"、"break"、"case"等等。当输入的源代码中出现这些关键字时，相应的规则会匹配，并返回一个标识符(声明部分定义的KEYWORD)
+
+每个规则都以关键字作为匹配模式，并在匹配成功时返回KEYWORD标识符。这个标识符可以在Lex文件的其他规则中使用，用于进一步处理关键字。
+
+\subsubsection{标识符}
+\begin{lstlisting}
+{L}{A}*					{ return IDENTIFIER; }  /* identifiers */
+\end{lstlisting}
+
+这段Lex代码用于匹配并返回标识符（identifiers），标识符是由字母、下划线和数字组成的变量名或标识名称。
+
+这行代码定义了一个规则，它以字母或下划线（L）作为开头，后面可以跟随零个或多个字母、下划线或数字（A）。这个规则匹配了标识符的模式，例如myVariable、\_count、x2等等。
+
+当输入的源代码中出现符合这个规则的标识符时，Lex将匹配到该规则，并执行相应的动作，即返回一个标识符（声明部分定义的IDENTIFIER）。这个标识符可以在Lex文件的其他规则中使用，用于进一步处理标识符。
+
+\subsubsection{整数常量}
+\begin{lstlisting}
+{HP}{H}+{IS}?			    { return I_CONSTANT; }  /* constants */
+{NZ}{D}*{IS}?			    { return I_CONSTANT; }
+"0"{O}*{IS}?		    	{ return I_CONSTANT; }
+\end{lstlisting}
+
+这段Lex代码用于匹配并返回C语言中的整数常量（integer constants）。它包含了三个规则：
+\begin{itemize}
+    \item 匹配十六进制整数常量的模式。它以HP（0x或0X）作为起始，后面跟随一个或多个十六进制数字（H），并可选择性地包含一个后缀（IS）来指示整数的类型。
+    \item 匹配十六进制整数常量的模式。它以HP（0x或0X）作为起始，后面跟随一个或多个十六进制数字（H），并可选择性地包含一个后缀（IS）来指示整数的类型。
+    \item 匹配八进制整数常量的模式。它以字符0作为起始，后面可以跟随零个或多个八进制数字（O），并可选择性地包含一个后缀（IS）来指示整数的类型。
+\end{itemize}
+
+\subsubsection{字符常量}
+
+\begin{lstlisting}
+{CP}?"'"({NE}|{ES})+"'"		{ return C_CONSTANT; }
+\end{lstlisting}
+
+这段Lex代码用于匹配并返回C语言中的字符常量（character constants）。
+
+这个规则匹配字符常量的模式。它由几个部分组成：
+\begin{itemize}
+    \item {CP}?：这是一个可选部分，表示字符常量可以选择性地以字符类型前缀（u、U、L）开头。{CP}匹配字符类型前缀（u、U、L）的模式。
+    \item " ' "：这是字符常量的起始引号。
+    \item ({NE}|{ES})+：这是字符常量的内容部分。它由一系列的非转义字符（{NE}）或转义序列（{ES}）组成。{NE}匹配非转义字符的模式，而{ES}匹配转义序列的模式。({NE}|{ES})+表示可以有一个或多个非转义字符或转义序列。
+    \item " ' "：这是字符常量的结束引号。
+\end{itemize}
+
+当输入的源代码中出现符合这个规则的字符常量时，Lex会匹配到该规则，并执行相应的动作，即返回一个标识符C\_CONSTANT，表示匹配到了一个字符常量。
+
+这个规则允许字符常量的内容包含非转义字符或转义序列，并在匹配成功时返回C\_CONSTANT标识符，以便在Lex文件的其他规则中对字符常量进行特殊处理或进一步分析。
+
+\subsubsection{浮点常量}
+
+\begin{lstlisting}
+{D}+{E}{FS}?		    		{ return F_CONSTANT; }
+{D}*"."{D}+{E}?{FS}?			{ return F_CONSTANT; }
+{D}+"."{E}?{FS}?		    	{ return F_CONSTANT; }
+{HP}{H}+{P}{FS}?		    	{ return F_CONSTANT; }
+{HP}{H}*"."{H}+{P}{FS}?			{ return F_CONSTANT; }
+{HP}{H}+"."{P}{FS}?		    	{ return F_CONSTANT; }
+\end{lstlisting}
+
+这段Lex代码用于匹配并返回C语言中的浮点数常量（floating-point constants）。它包含了六个规则，如下：
+
+\begin{itemize}
+    \item 以一个或多个数字（D）开头，接着是一个指数部分，由字母E表示，后面跟着一个可选的符号和一个或多个数字。最后，可能会包含一个可选的浮点数后缀（FS）。
+    \item 以零个或多个数字（D）开头，接着是一个小数点，然后是一个或多个数字。可选地，可以包含一个指数部分，由字母E表示，后面跟着一个可选的符号和一个或多个数字。最后，可能会包含一个可选的浮点数后缀（FS）
+    \item 以一个或多个数字（D）开头，接着是一个小数点。可选地，可以包含一个指数部分，由字母E表示，后面跟着一个可选的符号和一个或多个数字。最后，可能会包含一个可选的浮点数后缀（FS）。
+    \item 以十六进制前缀（HP）开头，后面跟着一个或多个十六进制数字（H），然后是一个指数部分，由字母P表示。最后，可能会包含一个可选的浮点数后缀（FS）。
+    \item 以十六进制前缀（HP）开头，后面跟着零个或多个十六进制数字（H），然后是一个小数点，接着是一个或多个十六进制数字。最后，需要包含一个指数部分，由字母P表示。最后，可能会包含一个可选的浮点数后缀（FS）。
+    \item 以十六进制前缀（HP）开头，后面跟着一个或多个十六进制数字（H），然后是一个小数点，接着是一个指数部分，由字母P表示。最后，可能会包含一个可选的浮点数后缀（FS）。
+\end{itemize}
+
+这些规则按照特定的模式匹配浮点数常量，并在匹配成功时返回F\_CONSTANT标识符，以便在Lex文件的其他规则中对浮点数常量进行特殊处理或进一步分析。
+
+\subsubsection{字符串字面量}
+
+\begin{lstlisting}
+({SP}?\"({NE}|{ES})*\"{WS}*)+	{ return STRING_LITERAL; }    
+/* strings literal */
+\end{lstlisting}
+
+这个Lex代码片段是用于在词法分析器中识别字符串字面量（string literals）的模式。
+
+这个模式可以被分解如下：
+\begin{itemize}
+    \item {SP}?：匹配可选的空格前缀（unicode、u、U、L）。
+    \item \char`\\"：匹配开始的双引号字符。
+    \item ({NE}|{ES})*：匹配零个或多个非转义字符（{NE}）或转义字符（{ES}）。
+    \item \char`\\"：匹配结束的双引号字符。
+    \item {WS}*：匹配零个或多个空格字符。
+    \item 整个模式用括号括起来，并且带有加号（+），表示可以重复匹配多个字符串字面量。
+\end{itemize}
+
+当词法分析器遇到匹配这个模式的输入时，它会返回 STRING\_LITERAL 标记，表示它识别到了一个字符串字面量。
+
+\subsubsection{标点符号}
+
+\begin{lstlisting}
+"..."					{ return PUNCTUATOR; }  /* punctuators */
+">>="					{ return PUNCTUATOR; }
+"<<="					{ return PUNCTUATOR; }
+...
+">"				    	{ return PUNCTUATOR; }
+"^"	    				{ return PUNCTUATOR; }
+"|"		    			{ return PUNCTUATOR; }
+"?"			    		{ return PUNCTUATOR; }
+\end{lstlisting}
+
+这段Lex代码片段用于匹配和识别各种标点符号（punctuators）。
+
+每行的模式都是一个特定的标点符号，例如 >>=, +=, \&\&, ( 等等。当输入与任何一个模式匹配时，词法分析器将返回 PUNCTUATOR 标记，表示它识别到了一个标点符号。大体可分为如下几类：
+\begin{itemize}
+    \item ...，它通常用于表示可变参数。
+    \item 各种复合赋值运算符（如 >>=, +=, -=, *=, /=, \%= 等）、位移运算符（如 >>, <<）、递增递减运算符（如 ++, --）、箭头运算符（->）、逻辑运算符（如 \&\&, ||）、比较运算符（如 <=, >=, ==, !=）和分号（;）。
+    \item 各种单个字符的标点符号，例如大括号（{, }）、逗号（,）、冒号（:）、等号（=）、圆括号（(, )）、方括号（\char`\[, \char`\]）、点号（.）、位与（\&）、逻辑非（!）、位非（\char`\~）、减号（-）、加号（+）、乘号（*）、除号（/）、取模（\%）、小于号（<）、大于号（>）、异或号（\char`\^）、位或（|）和问号（\char`\?）。
+\end{itemize}
+
+总之，这段代码定义了一系列模式，用于匹配和识别各种标点符号我注意到这些模式中的返回值是 PUNCTUATOR，这表示当匹配成功时，词法分析器将返回一个 PUNCTUATOR 标记，表示它识别到了一个标点符号。
+
+\subsubsection{错误}
+
+\begin{lstlisting}
+/* errors */
+{D}+({A}|\.)+    { yyerror("illegal name"); return -1; } 
+{SP}?\"({NE}|{ES})*{WS}*  { yyerror("unclosed string"); return -1; }
+.	    		 { yyerror("unexpected character"); return -1; }
+\end{lstlisting}
+
+这部分定义了三个规则：
+\begin{itemize}
+    \item {D}+({A}|\.)+：匹配非法的名称。它匹配一个或多个数字（{D}+），后跟一个字母或点号（{A}|.)+）。当匹配到这种模式时，词法分析器将输出一个错误消息“illegal name”。
+    \item {SP}?\"({NE}|{ES})*{WS}*：匹配未关闭的字符串常量。它匹配一个可选的前缀（{SP}?），后跟一个双引号，然后匹配零个或多个非转义字符（NE）或转义字符（ES），再匹配零个或多个空格字符，由于缺少结束双引号"，词法分析器将输出一个错误信息"unclosed string"
+    \item 匹配除换行符外的任意字符。当词法分析器遇到任何无法匹配其他规则的字符时，它会匹配这个规则。当匹配到这种模式时，词法分析器将返回一个错误消息"unexpected character"，表示遇到了意外的字符。
+\end{itemize}
+
+\section{使用说明}
+
+\subsection{LEX编译程序}
+利用win\_flex编译写好的.l文件，生成对应的.c代码
+\begin{lstlisting}
+> D:\win_flex_bison-latest\win_flex.exe --wincompat --outfile=D:\win_flex_bison-latest\code.yy.c D:\win_flex_bison-latest\code.l  
+\end{lstlisting}
+
+\subsection{C语言编译程序}
+其中
+\begin{lstlisting}
+yyin = fopen("D:\\program\\work\\code\\test\\test1.c", "r");
+\end{lstlisting}
+这里可以指定待分析的源代码路径
+
+\section{测试}
+
+\subsection{测试集1}
+该测试集用于测试程序在没有词法错误时，是否能正常运行。
+
+\subsubsection{输入的源代码}
+
+\begin{lstlisting}
+// Line comment *///*/
+#include <stdio.h>
+
+int main()
+{
+    /*
+     * Block comment *
+     */
+    char *msg = "Hello ";
+    char ch = 'w';
+    float f = 0.145e+3;
+    double d = 3.e3;
+    float f2 = 0.145e-3;
+    double d2 = 3.;
+    int integer = 864;
+    long long int longint = 1234567890123456789;
+    printf("%s %f\n", msg, d);
+    printf("%c\t%d\n", ch, integer);
+    printf("%lld\v", longint);
+    return 0;
+}
+\end{lstlisting}
+
+\subsubsection{输出结果}
+
+\begin{lstlisting}[numbers = none, keywordstyle=\color{black},stringstyle=\color{black}]
+4:1: [Keyword]: int
+4:5: [Identifier]: main
+4:9: [Punctuator]: (
+4:10: [Punctuator]: )
+5:1: [Punctuator]: {
+9:5: [Keyword]: char
+9:10: [Punctuator]: *
+9:11: [Identifier]: msg
+9:15: [Punctuator]: =
+9:17: [String]: "Hello "
+9:25: [Punctuator]: ;
+10:5: [Keyword]: char
+10:10: [Identifier]: ch
+10:13: [Punctuator]: =
+10:15: [Character]: 'w'
+10:18: [Punctuator]: ;
+11:5: [Keyword]: float
+11:11: [Identifier]: f
+11:13: [Punctuator]: =
+11:15: [Floating]: 0.145e+3
+11:23: [Punctuator]: ;
+12:5: [Keyword]: double
+12:12: [Identifier]: d
+12:14: [Punctuator]: =
+12:16: [Floating]: 3.e3
+12:20: [Punctuator]: ;
+13:5: [Keyword]: float
+13:11: [Identifier]: f2
+13:14: [Punctuator]: =
+13:16: [Floating]: 0.145e-3
+13:24: [Punctuator]: ;
+14:5: [Keyword]: double
+14:12: [Identifier]: d2
+14:15: [Punctuator]: =
+14:17: [Floating]: 3.
+14:19: [Punctuator]: ;
+15:5: [Keyword]: int
+15:9: [Identifier]: integer
+15:17: [Punctuator]: =
+15:19: [Integer]: 864
+15:22: [Punctuator]: ;
+16:5: [Keyword]: long
+16:10: [Keyword]: long
+16:15: [Keyword]: int
+16:19: [Identifier]: longint
+16:27: [Punctuator]: =
+16:29: [Integer]: 1234567890123456789
+16:48: [Punctuator]: ;
+17:5: [Identifier]: printf
+17:11: [Punctuator]: (
+17:12: [String]: "%s %f\n"
+17:21: [Punctuator]: ,
+17:23: [Identifier]: msg
+17:26: [Punctuator]: ,
+17:28: [Identifier]: d
+17:29: [Punctuator]: )
+17:30: [Punctuator]: ;
+18:5: [Identifier]: printf
+18:11: [Punctuator]: (
+18:12: [String]: "%c\t%d\n"
+18:22: [Punctuator]: ,
+18:24: [Identifier]: ch
+18:26: [Punctuator]: ,
+18:28: [Identifier]: integer
+18:35: [Punctuator]: )
+18:36: [Punctuator]: ;
+19:5: [Identifier]: printf
+19:11: [Punctuator]: (
+19:12: [String]: "%lld\v"
+19:20: [Punctuator]: ,
+19:22: [Identifier]: longint
+19:29: [Punctuator]: )
+19:30: [Punctuator]: ;
+20:5: [Keyword]: return
+20:12: [Integer]: 0
+20:13: [Punctuator]: ;
+21:1: [Punctuator]: }
+
+Total characters:       415
+Total lines:    21
+
+Keyword:        12
+Identifier:     17
+Integers:       3
+Floatings:      4
+Characters:     1
+Strings:        4
+Punctuators:    36
+Errors:         0
+
+\end{lstlisting}
+
+
+\subsubsection{输出结果分析}
+
+代码总共包含了415个字符，分布在21行中。词法分析结果提供了每个词法单元的行号、列号和类型。
+
+\begin{itemize}
+    \item 代码中包含了12个关键字。
+    \item 代码中包含了17个标识符。
+    \item 代码中包含了7个数值常量，包括浮点数4个和整数常量3个。
+    \item 代码中包含了1个字符常量。
+    \item 代码中包含了4个字符串字面值。
+    \item 代码中包含了36个标点符号。
+\end{itemize}
+
+同时，词法分析结果未发现任何错误。
+
+\subsection{测试集2}
+
+\subsubsection{输入的源代码}
+
+\begin{lstlisting}
+int main()
+{
+    double 2ch = 1.a;
+    double a = 1ee2;
+    char *num = "unclose\++";
+    char *str = "unclose\";
+    s = ''
+    w = \$
+    int a = '@;
+    . = 1.2.3;
+}
+/* unclose_Comment
+
+\end{lstlisting}
+
+\subsubsection{输出结果}
+
+% 定义新的语言
+\lstdefinelanguage{ErrorLanguage}{
+  morekeywords={Error},
+  keywordstyle=[1]\color{red},
+  keywordstyle=[2]\color{green!60!black},
+  moredelim=[is][\color{green!60!black}]{|}{|},
+}
+
+\begin{lstlisting}[
+    language=ErrorLanguage,
+    numbers=none,
+]
+1:1: [Keyword]: int
+1:5: [Identifier]: main
+1:9: [Punctuator]: (
+1:10: [Punctuator]: )
+2:1: [Punctuator]: {
+3:5: [Keyword]: double
+3:12:[Error: |illegal name|]: 2ch
+3:16: [Punctuator]: =
+3:18:[Error: |illegal name|]: 1.a
+3:21: [Punctuator]: ;
+4:5: [Keyword]: double
+4:12: [Identifier]: a
+4:14: [Punctuator]: =
+4:16:[Error: |illegal name|]: 1ee2
+4:20: [Punctuator]: ;
+5:5: [Keyword]: char
+5:10: [Punctuator]: *
+5:11: [Identifier]: num
+5:15: [Punctuator]: =
+5:17:[Error: |unclosed string|]: "unclose
+5:25:[Error: |unexpected character|]: \
+5:26: [Punctuator]: ++
+5:28:[Error: |unclosed string|]: ";
+6:5: [Keyword]: char
+6:10: [Punctuator]: *
+6:11: [Identifier]: str
+6:15: [Punctuator]: =
+6:17:[Error: |unclosed string|]: "unclose\";
+7:5: [Identifier]: s
+7:7: [Punctuator]: =
+7:9:[Error: |unexpected character|]: '
+7:10:[Error: |unexpected character|]: '
+8:5: [Identifier]: w
+8:7: [Punctuator]: =
+8:9:[Error: |unexpected character|]: \
+8:10:[Error: |unexpected character|]: $
+9:5: [Keyword]: int
+9:9: [Identifier]: a
+9:11: [Punctuator]: =
+9:13:[Error: |unexpected character|]: '
+9:14:[Error: |unexpected character|]: @
+9:15: [Punctuator]: ;
+10:5: [Punctuator]: .
+10:7: [Punctuator]: =
+10:9:[Error: |illegal name|]: 1.2.3
+10:14: [Punctuator]: ;
+11:1: [Punctuator]: }
+13:1:[Error: |unterminated comment|]:
+
+Total characters:       188
+Total lines:    13
+
+Keyword:        6
+Identifier:     7
+Integers:       0
+Floatings:      0
+Characters:     0
+Strings:        0
+Punctuators:    20
+Errors:         15
+\end{lstlisting}
+
+\subsubsection{输出结果分析}
+
+输出结果指示了在给定的代码中存在多个错误：
+\begin{itemize}
+    \item 第3行第12列的\lstinline[language=ErrorLanguage]{[Error: |illegal name|]:2ch}表示在该位置上发现了一个错误，指出标识符\lstinline{"2ch"}不是一个合法的名称。
+    \item 第3行第18列的\lstinline[language=ErrorLanguage]{[Error: |illegal name|]:1.a}表示在该位置上发现了一个错误，指出标识符\lstinline{"1.a"}不是一个合法的名称。
+    \item 第4行第16列的\lstinline[language=ErrorLanguage]{[Error: |illegal name|]:1e}表示在该位置上发现了一个错误，指出标识符\lstinline{"1e"}不是一个合法的名称。
+    \item 第5行第17列的\lstinline[language=ErrorLanguage]{[Error: |unclosed string|]:"unclose}表示在该位置上发现了一个错误，指出字符串字面量\lstinline{"unclose"}未闭合。
+    \item 第5行第25列的\lstinline[language=ErrorLanguage]{[Error: |unexpected character|]:\}表示在该位置上发现了一个错误，指出意外字符\lstinline{\}。
+    \item 第6行第17列的\lstinline[language=ErrorLanguage]{[Error: |unclosed string|]:"unclose\"}表示在该位置上发现了一个错误，指出字符串字面量\lstinline{"unclose"}未闭合。
+    \item 第8行第9列和第10列的\lstinline[language=ErrorLanguage]{[Error: |unexpected character|]:\$}表示在该位置上发现了一个错误，指出意外的字符\lstinline{\$}。
+    \item 第9行第13列和14列的\lstinline[language=ErrorLanguage]{[Error: |unexpected character|]:'@ }表示在该位置上发现了一个错误，指出意外的字符\lstinline{‘@}。
+    \item 第10行第9列的\lstinline[language=ErrorLanguage]{[Error: |illegal name|]:1.2.3}表示在该位置上发现了一个错误，指出标识符\lstinline{"1.2.3"}不是一个合法的名称。
+    \item 第13行第1列的\lstinline[language=ErrorLanguage]{[Error: |unterminated comment|]}表示在该位置上发现了一个错误，指出这里的注释被破坏
+\end{itemize}
+
+\section{实验总结}
+
+本次实验中我利用LEX工具编写了一个词法分析程序，使我对词法分析的流程更加清楚，对相关知识点的掌握更加牢固。
+
+为了实现C语言的词法分析，我参考了C11的ISO标准，仔细阅读了标准中对各种词法元素的定义，包括关键字、标识符、常量、字符串字面量、运算符等。然后根据标准中给出的语法和课上所学的正则表达式，我设计了词法分析所需的匹配表达式。
+
+在设计词法分析程序时，我预先设计了一系列常用的正则表达式，后续的词法分析，可以利用这些工具
+
+在具体实现时，我遇到了一些困难。在第一次编写的程序中，出现了许多疏漏的情况，无法正确解析输入的C代码。为了解决这些问题，我多次细致地阅读语法定义，设计不同的样例进行测试，反复调试程序。在这过程中，我找到并修复了程序中的许多bug。
+
+通过这个实验，我对词法分析的流程和实现有了更深入的理解，也提高了自己的编程能力，尤其是利用自动机识别字符串的能力。在阅读语法标准方面，我的英文文献阅读能力也得到了提高。总而言之，这个实验使我收获颇丰，对以后课程的学习非常有帮助。
+
+
+% \subsection{全局选项}
+% 此模板定义了一个语言选项 \lstinline{lang}，可以选择英文模式 \lstinline{lang=en}（默认）或者中文模式 \lstinline{lang=cn}。当选择中文模式时，图表的标题引导词以及参考文献，定理引导词等信息会变成中文。你可以通过下面两种方式来选择语言模式：
+% \begin{lstlisting}
+% \documentclass[lang=cn]{elegantpaper} % or
+% \documentclass{cn}{elegantpaper} 
+% \end{lstlisting}
+
+% \textbf{注意：} 英文模式下，由于没有添加中文宏包，无法输入中文。如果需要输入中文，可以通过在导言区引入中文宏包 \lstinline{ctex} 或者加入 \lstinline{xeCJK} 宏包后自行设置字体。 
+% \begin{lstlisting}
+% \usepackage[UTF8,scheme=plain]{ctex}
+% \end{lstlisting}
+
+% \subsection{数学字体选项}
+
+% 本模板定义了一个数学字体选项（\lstinline{math}），可选项有三个：
+% \begin{enumerate}
+%   \item \lstinline{math=cm}（默认），使用 \LaTeX{} 默认数学字体（推荐，无需声明）；
+%   \item \lstinline{math=newtx}，使用 \lstinline{newtxmath} 设置数学字体（潜在问题比较多）。
+%   \item \lstinline{math=mtpro2}，使用 \lstinline{mtpro2} 宏包设置数学字体，要求用户已经成功安装此宏包。
+% \end{enumerate}
+
+% \subsection{中文字体选项}
+
+% 模板提供中文字体选项 \lstinline{chinesefont}，可选项有
+% \begin{enumerate}
+%   \item \lstinline{ctexfont}：默认选项，使用 \lstinline{ctex} 宏包根据系统自行选择字体，可能存在字体缺失的问题，更多内容参考 \lstinline{ctex} 宏包\href{https://ctan.org/pkg/ctex}{官方文档}\footnote{可以使用命令提示符，输入 \lstinline{texdoc ctex} 调出本地 \lstinline{ctex} 宏包文档}。
+%   \item \lstinline{founder}：方正字体选项（\textbf{需要安装方正字体}），后台调用 \lstinline{ctex} 宏包并且使用 \lstinline{fontset=none} 选项，然后设置字体为方正四款免费字体，方正字体下载注意事项见后文，用户只需要安装方正字体即可使用该选项。
+%   \item \lstinline{nofont}：后台会调用 \lstinline{ctex} 宏包并且使用 \lstinline{fontset=none} 选项，不设定中文字体，用户可以自行设置中文字体，具体见后文。
+% \end{enumerate}
+
+% \subsubsection{方正字体选项}
+% 由于使用 \lstinline{ctex} 宏包默认调用系统已有的字体，部分系统字体缺失严重，因此，用户希望能够使用其它字体，我们推荐使用方正字体。方正的{\songti 方正书宋}、{\heiti 方正黑体}、{\kaishu 方正楷体}、{\fangsong 方正仿宋}四款字体均可免费试用，且可用于商业用途。用户可以自行从\href{http://www.foundertype.com/}{方正字体官网}下载此四款字体，在下载的时候请\textbf{务必}注意选择 GBK 字符集，也可以使用 \href{https://www.latexstudio.net/}{\LaTeX{} 工作室}提供的\href{https://pan.baidu.com/s/1BgbQM7LoinY7m8yeP25Y7Q}{方正字体，提取码为：njy9} 进行安装。安装时，{\kaishu Win 10 用户请右键选择为全部用户安装，否则会找不到字体。}
+
+% \begin{figure}[!htb]
+% \centering
+% \includegraphics[width=0.9\textwidth]{founder.png}
+% \end{figure}
+
+% \subsubsection{其他中文字体}
+% 如果你想完全自定义字体\footnote{这里仍然以方正字体为例。}，你可以选择 \lstinline{chinesefont=nofont}，然后在导言区设置即可，可以参考下方代码：
+% \begin{lstlisting}
+% \setCJKmainfont[BoldFont={FZHei-B01},ItalicFont={FZKai-Z03}]{FZShuSong-Z01}
+% \setCJKsansfont[BoldFont={FZHei-B01}]{FZKai-Z03}
+% \setCJKmonofont[BoldFont={FZHei-B01}]{FZFangSong-Z02}
+% \setCJKfamilyfont{zhsong}{FZShuSong-Z01}
+% \setCJKfamilyfont{zhhei}{FZHei-B01}
+% \setCJKfamilyfont{zhkai}[BoldFont={FZHei-B01}]{FZKai-Z03}
+% \setCJKfamilyfont{zhfs}[BoldFont={FZHei-B01}]{FZFangSong-Z02}
+% \newcommand*{\songti}{\CJKfamily{zhsong}}
+% \newcommand*{\heiti}{\CJKfamily{zhhei}}
+% \newcommand*{\kaishu}{\CJKfamily{zhkai}}
+% \newcommand*{\fangsong}{\CJKfamily{zhfs}}
+% \end{lstlisting}
+
+
+
+% \subsection{自定义命令}
+% 此模板并没有修改任何默认的 \LaTeX{} 命令或者环境\footnote{目的是保证代码的可复用性，请用户关注内容，不要太在意格式，这才是本工作论文模板的意义。}。另外，我自定义了 4 个命令：
+% \begin{enumerate}
+%   \item \lstinline{\email}：创建邮箱地址的链接，比如 \email{ddswhu@outlook.com}；
+%   \item \lstinline{\figref}：用法和 \lstinline{\ref} 类似，但是会在插图的标题前添加 <\textbf{图 n}> ；
+%   \item \lstinline{\tabref}：用法和 \lstinline{\ref} 类似，但是会在表格的标题前添加 <\textbf{表 n}>；
+%   \item \lstinline{\keywords}：为摘要环境添加关键词。
+% \end{enumerate}
+
+% \subsection{参考文献}
+
+% 文献部分，本模板调用了 biblatex 宏包，并提供了 biber（默认） 和 bibtex 两个后端选项，可以使用 \lstinline{bibend} 进行修改：
+
+% \begin{lstlisting}
+%   \documentclass[bibtex]{elegantpaper}
+%   \documentclass[bibend=bibtex]{elegantpaper}
+% \end{lstlisting}
+
+% 关于文献条目（bib item），你可以在谷歌学术，Mendeley，Endnote 中取，然后把它们添加到 \lstinline{reference.bib} 中。在文中引用的时候，引用它们的键值（bib key）即可。
+
+% 为了方便文献样式修改，模板引入了 \lstinline{bibstyle} 和 \lstinline{citestyle} 选项，默认均为数字格式（numeric），参考文献示例：\cite{cn1,en2,en3} 使用了中国一个大型的 P2P 平台（人人贷）的数据来检验男性投资者和女性投资者在投资表现上是否有显著差异。
+
+% 如果需要设置为国标 GB7714-2015，需要使用：
+% \begin{lstlisting}
+%   \documentclass[citestyle=gb7714-2015, bibstyle=gb7714-2015]{elegantpaper} 
+% \end{lstlisting}
+
+% 如果需要添加排序方式，可以在导言区加入
+% \begin{lstlisting}
+%   \ExecuteBibliographyOptions{sorting=ynt}
+% \end{lstlisting}
+
+% 启用国标之后，可以加入 \lstinline{sorting=gb7714-2015}。
+
+
+% \section{使用 newtx 系列字体}
+
+% 如果需要使用原先版本的 \lstinline{newtx} 系列字体，可以通过显示声明数学字体：
+
+% \begin{lstlisting}
+% \documentclass[math=newtx]{elegantpaper}
+% \end{lstlisting}
+
+% \subsection{连字符}
+
+% 如果使用 \lstinline{newtx} 系列字体宏包，需要注意下连字符的问题。
+% \begin{equation}
+%   \int_{R^q} f(x,y) dy.\emph{of\kern0pt f}
+% \end{equation}
+
+% \begin{lstlisting}
+% \begin{equation}
+%   \int_{R^q} f(x,y) dy.\emph{of \kern0pt f}
+% \end{equation}
+% \end{lstlisting}
+
+% \subsection{宏包冲突}
+
+% 有用户反馈模板在使用 \lstinline{yhmath} 以及 \lstinline{esvect} 等宏包时会报错：
+% \begin{lstlisting}
+% LaTeX Error:
+%    Too many symbol fonts declared.
+% \end{lstlisting}
+
+% 原因是在使用 \lstinline{newtxmath} 宏包时，重新定义了数学字体用于大型操作符，达到了 {\heiti 最多 16 个数学字体} 的上限，在调用其他宏包的时候，无法新增数学字体。为了减少调用非常用宏包，在此给出如何调用 \lstinline{yhmath} 以及 \lstinline{esvect} 宏包的方法。
+
+% 请在 \lstinline{elegantpaper.cls} 内搜索 \lstinline{yhmath} 或者 \lstinline{esvect}，将你所需要的宏包加载语句\textit{取消注释}即可。
+
+
+% \section{常见问题 FAQ}
+
+% \begin{enumerate}[label=\arabic*).]
+%   \item \textit{如何删除版本信息？}\\
+%     导言区不写 \lstinline|\version{x.xx}| 即可。
+%   \item \textit{如何删除日期？}\\
+%     需要注意的是，与版本 \lstinline{\version} 不同的是，导言区不写或注释 \lstinline{\date} 的话，仍然会打印出当日日期，原因是 \lstinline{\date} 有默认参数。如果不需要日期的话，日期可以留空即可，也即 \lstinline|\date{}|。
+%   \item \textit{如何获得中文日期？}\\
+%     为了获得中文日期，必须在中文模式下\footnote{英文模式下，由于未加载中文宏包，无法输入中文。}，使用 \lstinline|\date{\zhdate{2019/10/11}}|，如果需要当天的汉化日期，可以使用 \lstinline|\date{\zhtoday}|，这两个命令都来源于 \href{https://ctan.org/pkg/zhnumber}{\lstinline{zhnumber}} 宏包。
+%   \item \textit{如何添加多个作者？}\\
+%     在 \lstinline{\author} 里面使用 \lstinline{\and}，作者单位可以用 \lstinline{\\} 换行。
+%     \begin{lstlisting}
+%     \author{author 1\\ org. 1 \and author 2 \\ org. 2 }
+%     \end{lstlisting}
+%   \item \textit{如何添加中英文摘要？}\\
+%     请参考 \href{https://github.com/ElegantLaTeX/ElegantPaper/issues/5}{GitHub::ElegantPaper/issues/5}
+% \end{enumerate}
+
+
+% \section{致谢}
+
+% 特别感谢 \href{https://github.com/sikouhjw}{sikouhjw} 和 \href{https://github.com/syvshc}{syvshc}  长期以来对于 Github 上 issue 的快速回应，以及各个社区论坛对于 ElegantLaTeX 相关问题的回复。特别感谢 ChinaTeX 以及 \href{http://www.latexstudio.net/}{LaTeX 工作室} 对于本系列模板的大力宣传与推广。
+
+% 如果你喜欢我们的模板，你可以在 Github 上收藏我们的模板。
+
+% \nocite{*}
+% \printbibliography[heading=bibintoc, title=\ebibname]
+
+% \appendix
+% %\appendixpage
+% \addappheadtotoc
+
+\end{document}

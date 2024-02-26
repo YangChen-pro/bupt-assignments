@@ -1,0 +1,470 @@
+%!TEX program = xelatex
+% 完整编译: xelatex -> biber/bibtex -> xelatex -> xelatex
+\documentclass[lang=cn,11pt,a4paper]{elegantpaper}
+
+\title{python中的数据处理}
+\author{杨晨 \\学号2021212171}
+\institute{北京邮电大学 计算机学院}
+
+% \version{0.10}
+\date{\zhtoday}
+
+% 本文档命令
+\usepackage{array}
+\usepackage{xcolor}
+\newcommand{\ccr}[1]{\makecell{{\color{#1}\rule{1cm}{1cm}}}}
+
+% 设置全局代码样式
+\lstset{
+  language=Python, % 设置语言为Python
+  keywordstyle=\color{blue}, % 设置关键字颜色为蓝色
+  commentstyle=\color{green!60!black}, % 设置注释颜色为绿色
+  stringstyle=\color{orange}, % 设置字符串颜色为橙色
+  showstringspaces=false, % 不显示字符串中的空格
+  frame=single, % 添加边框
+  breaklines=true, % 自动断行
+  numberstyle=\tiny\color{gray}, % 设置行号样式为小号灰色
+  captionpos=b % 设置标题位置为底部
+}
+
+\lstdefinelanguage{text}{
+    showstringspaces=false,
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=4
+}
+
+\begin{document}
+
+
+
+\maketitle
+% \tableofcontents
+
+\section{概述}
+
+\subsection{实验内容}
+
+\begin{enumerate}
+
+    \item 对你爬取下来的北京二手房数据，进行数据的预处理，并计算：
+    \begin{enumerate}
+        \item 四个区的平均总价、最高总价、最低总价；
+        \item 四个区的平均单价、最高单价、最低单价；
+        \item 按照房屋建成的年份，计算2000年以前、2000-2009.12.31、2010-至今，这三个时间段的平均单价。
+    \end{enumerate}
+    \item 处理北京空气质量数据
+    
+    对HUMI、PRES、TEMP三列，进行线性插值处理。修改cbwd列中值为“cv”的单元格，其值用后项数据填充。
+\end{enumerate}
+
+\subsection{开发环境}
+
+\begin{itemize}
+    \item Windows10
+    \item PyCharm 2023.2.4 (Professional Edition)
+\end{itemize}
+
+\section{实验过程}
+
+\subsection{统计二手房数据}
+
+\subsubsection{概述}
+由于之前爬取的数据里，没有房屋的建成年份，所以修改\lstinline{spider.py}的代码，重新爬取
+\begin{lstlisting}
+def parse(self, response):
+    item = LianjiaItem()
+    distinct = response.url.split("/")[4]
+    page = response.url.split("/")[5]
+    for each in response.xpath('//ul[@class="sellListContent"]/li'):
+        item["name"] = each.xpath("div/div/a/text()").get()
+        price_value = each.xpath(
+            "div/div[@class='priceInfo']/div[@class='totalPrice totalPrice2']/span/text()"
+        ).get()
+        price_unit = each.xpath(
+            "div/div[@class='priceInfo']/div[@class='totalPrice totalPrice2']/i[last()]/text()"
+        ).get()
+        item["price"] = f"{price_value}{price_unit}"
+        area_text = each.xpath(
+            ".//div[@class='address']/div[@class='houseInfo']/text()"
+        ).get()
+        square = re.search(r"(\d+(\.\d+)?)平米", area_text)
+        build_year = re.search(r"(\d+)年", area_text)
+        if square:
+            item["area"] = square.group(1) + "平米"
+        else:
+            item["area"] = ""
+        if build_year:
+            item["built_time"] = build_year.group(1) + "年"
+        else:
+            item["built_time"] = ""
+        item["unit_price"] = each.xpath(
+            "div/div[@class='priceInfo']/div[@class='unitPrice']/span/text()"
+        ).get()
+        item["distinct"] = distinct
+        yield item
+\end{lstlisting}
+
+\lstinline{LianjiaData.json}爬取结果如下，这里展示部分
+\begin{lstlisting}[language=text]
+{"name": "北苑满五年唯一，南北通透板楼，双卫，双阳台，高层", "price": "815万", "area": "153.47平米", "built_time": "", "unit_price": "53,105元/平", "distinct": "chaoyang"}
+{"name": "望京西园三区新上，南北四居，阳台俯瞰小区花园全景。", "price": "1200万", "area": "218.17平米", "built_time": "2001年", "unit_price": "55,003元/平", "distinct": "chaoyang"}
+{"name": "峻峰华亭 跃层灵动格局 私密性好 停车位充足 四环内", "price": "820万", "area": "161.68平米", "built_time": "", "unit_price": "50,718元/平", "distinct": "chaoyang"}
+{"name": "满五唯一。无抵押户口，临河明卫，南北三居，诚意出售", "price": "755万", "area": "150.12平米", "built_time": "", "unit_price": "50,294元/平", "distinct": "chaoyang"}
+{"name": "柳芳南里 3室1厅 南 北", "price": "760万", "area": "88.77平米", "built_time": "1990年", "unit_price": "85,615元/平", "distinct": "chaoyang"}
+{"name": "和乔丽晶一期 低密度板楼 中间楼层诚意出售", "price": "990万", "area": "167.66平米", "built_time": "2000年", "unit_price": "59,049元/平", "distinct": "chaoyang"}
+{"name": "满五唯一，南北通透 错层三居，不临街 采光好", "price": "730万", "area": "172.17平米", "built_time": "", "unit_price": "42,400元/平", "distinct": "chaoyang"}
+{"name": "中直小区，管理不错，全明格局，交通便利，配套齐全", "price": "720万", "area": "72.22平米", "built_time": "", "unit_price": "99,696元/平", "distinct": "chaoyang"}
+......
+\end{lstlisting}
+
+\subsubsection{统计过程}
+根据json文件中的内容，可以发现，房屋的区域、总价和单价数据都是齐全的，而建成年份只有部分房屋有。所以在用正则表达式提取时，需要注意匹配结果。
+\begin{lstlisting}
+for item in data:
+    distinct = item["distinct"]
+    price = re.search(r"(\d+(\.\d+)?)万", item["price"]).group(1)
+    unit = re.search(r"(\d+(,\d+)?)元/平", item["unit_price"]).group(1).replace(",", "")
+    total_price[distinct].append(float(price))
+    unit_price[distinct].append(float(unit))
+    year = re.search(r"(\d+)年", item["built_time"])
+    if year:  # 有些房源没有建造时间，所以需要判断
+        year = int(year.group(1))
+        if year < 2000:
+            built_years["before_2000"].append(float(unit))
+        elif year < 2010:
+            built_years["2000_to_2009"].append(float(unit))
+        else:
+            built_years["2010_and_after"].append(float(unit))
+\end{lstlisting}
+
+之后，按照区域，统计平均总价、最高总价、最低总价；统计平均单价、最高单价、最低单价
+
+\begin{lstlisting}
+for distinct in total_price:
+    print(f"{distinct}区二手房总价最高的房源：{max(total_price[distinct]):}万")
+    print(f"{distinct}区二手房总价最低的房源：{min(total_price[distinct]):}万")
+    print(f"{distinct}区二手房总价均值：{sum(total_price[distinct])/len(total_price[distinct]):.2f}万\n")
+    print(f"{distinct}区二手房单价最高的房源：{max(unit_price[distinct]):}元/平米")
+    print(f"{distinct}区二手房单价最低的房源：{min(unit_price[distinct]):}元/平米")
+    print(f"{distinct}区二手房单价均值：{sum(unit_price[distinct])/len(unit_price[distinct]):.2f}元/平米\n")
+\end{lstlisting}
+
+之后，对于所有有建造年份的房屋，按照时间段，统计平均单价
+\begin{lstlisting}
+for year_range in built_years:
+    print(f"{year_range}建造的二手房单价均值：{sum(built_years[year_range])/len(built_years[year_range]):.2f}元/平米")
+\end{lstlisting}
+
+\subsubsection{统计结果}
+
+\begin{lstlisting}[language=text]
+dongcheng区二手房总价最高的房源：2600.0万
+dongcheng区二手房总价最低的房源：330.0万
+dongcheng区二手房总价均值：761.52万
+
+dongcheng区二手房单价最高的房源：155669.0元/平米
+dongcheng区二手房单价最低的房源：31172.0元/平米
+dongcheng区二手房单价均值：102411.30元/平米
+
+xicheng区二手房总价最高的房源：3125.0万
+xicheng区二手房总价最低的房源：349.0万
+xicheng区二手房总价均值：888.65万
+
+xicheng区二手房单价最高的房源：179731.0元/平米
+xicheng区二手房单价最低的房源：38937.0元/平米
+xicheng区二手房单价均值：118588.37元/平米
+
+chaoyang区二手房总价最高的房源：2980.0万
+chaoyang区二手房总价最低的房源：140.0万
+chaoyang区二手房总价均值：616.99万
+
+chaoyang区二手房单价最高的房源：104247.0元/平米
+chaoyang区二手房单价最低的房源：33760.0元/平米
+chaoyang区二手房单价均值：65578.25元/平米
+
+haidian区二手房总价最高的房源：2799.0万
+haidian区二手房总价最低的房源：253.0万
+haidian区二手房总价均值：817.13万
+
+haidian区二手房单价最高的房源：152812.0元/平米
+haidian区二手房单价最低的房源：32971.0元/平米
+haidian区二手房单价均值：92072.74元/平米
+
+before_2000建造的二手房单价均值：94497.74元/平米
+2000_to_2009建造的二手房单价均值：95625.52元/平米
+2010_and_after建造的二手房单价均值：81764.13元/平米
+\end{lstlisting}
+
+\subsection{csv文件填充}
+
+\begin{enumerate}
+    \item 导入所需的库
+    \begin{lstlisting}
+import pandas as pd
+    \end{lstlisting}
+    导入了pandas库，用于数据处理和分析。
+    \item 读取CSV文件
+    \begin{lstlisting}
+data = pd.read_csv(
+    r"C:\Users\Administrator\Documents\Tencent Files\1369792882\FileRecv\BeijingPM20100101_20151231.csv",
+    encoding="utf-8"
+)
+    \end{lstlisting}
+    使用\lstinline{pd.read_csv}函数读取CSV文件。提供了文件路径，并指定了编码为UTF-8。
+    \item 线性插值处理
+    \begin{lstlisting}
+data["HUMI"] = data["HUMI"].interpolate()
+data["PRES"] = data["PRES"].interpolate()
+data["TEMP"] = data["TEMP"].interpolate()
+    \end{lstlisting}
+    对"HUMI"、"PRES"和"TEMP"三列进行线性插值处理。使用\lstinline{interpolate}函数填充这些列中的缺失值，根据前后数据的趋势进行插值。
+
+    \item 修改特定列的值
+    \begin{lstlisting}
+data["cbwd"] = data["cbwd"].replace("cv", method="bfill")
+    \end{lstlisting}
+    将"cbwd"列中值为"cv"的单元格用后项数据进行填充。使用\lstinline{replace}函数替换特定值。
+    \item 保存处理后的数据
+    \begin{lstlisting}
+data.to_csv("processed.csv", index=False, encoding="utf-8")
+    \end{lstlisting}
+    使用\lstinline{to_csv}函数将处理后的数据保存为名为"processed.csv"的新文件。设置\lstinline{index=False}参数以不保存索引列，并指定编码为UTF-8。
+\end{enumerate}
+
+通过运行以上代码，将执行以下操作：
+\begin{itemize}
+    \item 加载CSV文件"BeijingPM20100101\_20151231.csv"。
+    \item 对"HUMI"、"PRES"和"TEMP"三列进行线性插值处理，填充缺失值。
+    \item 修改"cbwd"列中值为"cv"的单元格，用后项数据进行填充。
+    \item 将处理后的数据保存为名为"processed.csv"的新文件。
+\end{itemize}
+
+
+\section{附录：完整代码}
+
+\subsection{统计二手房数据}
+\begin{lstlisting}
+import json
+import re
+
+data = []
+
+with open(r"../py_homework/LianjiaData.json", "r", encoding="utf-8") as f:
+    for line in f:
+        item = json.loads(line)
+        data.append(item)
+
+total_price = {"dongcheng": [], "xicheng": [], "chaoyang": [], "haidian": []}
+unit_price = {"dongcheng": [], "xicheng": [], "chaoyang": [], "haidian": []}
+built_years = {"before_2000": [], "2000_to_2009": [], "2010_and_after": []}
+
+for item in data:
+    distinct = item["distinct"]
+    price = re.search(r"(\d+(\.\d+)?)万", item["price"]).group(1)
+    unit = re.search(r"(\d+(,\d+)?)元/平", item["unit_price"]).group(1).replace(",", "")
+    total_price[distinct].append(float(price))
+    unit_price[distinct].append(float(unit))
+    year = re.search(r"(\d+)年", item["built_time"])
+    if year:  # 有些房源没有建造时间，所以需要判断
+        year = int(year.group(1))
+        if year < 2000:
+            built_years["before_2000"].append(float(unit))
+        elif year < 2010:
+            built_years["2000_to_2009"].append(float(unit))
+        else:
+            built_years["2010_and_after"].append(float(unit))
+
+
+for distinct in total_price:
+    print(f"{distinct}区二手房总价最高的房源：{max(total_price[distinct]):}万")
+    print(f"{distinct}区二手房总价最低的房源：{min(total_price[distinct]):}万")
+    print(f"{distinct}区二手房总价均值：{sum(total_price[distinct])/len(total_price[distinct]):.2f}万\n")
+    print(f"{distinct}区二手房单价最高的房源：{max(unit_price[distinct]):}元/平米")
+    print(f"{distinct}区二手房单价最低的房源：{min(unit_price[distinct]):}元/平米")
+    print(f"{distinct}区二手房单价均值：{sum(unit_price[distinct])/len(unit_price[distinct]):.2f}元/平米\n")
+
+for year_range in built_years:
+    print(f"{year_range}建造的二手房单价均值：{sum(built_years[year_range])/len(built_years[year_range]):.2f}元/平米")
+\end{lstlisting}
+
+\subsection{csv文件填充}
+
+\begin{lstlisting}
+import pandas as pd
+
+data = pd.read_csv(
+    r"C:\Users\Administrator\Documents\Tencent Files\1369792882\FileRecv\BeijingPM20100101_20151231.csv",
+    encoding="utf-8",
+)
+
+# 对HUMI、PRES、TEMP三列，进行线性插值处理
+data["HUMI"] = data["HUMI"].interpolate()
+data["PRES"] = data["PRES"].interpolate()
+data["TEMP"] = data["TEMP"].interpolate()
+
+# 修改cbwd列中值为“cv”的单元格，其值用后项数据填充
+data["cbwd"] = data["cbwd"].replace("cv", method="bfill")
+
+data.to_csv("processed.csv", index=False, encoding="utf-8")
+
+\end{lstlisting}
+
+% \subsection{全局选项}
+% 此模板定义了一个语言选项 \lstinline{lang}，可以选择英文模式 \lstinline{lang=en}（默认）或者中文模式 \lstinline{lang=cn}。当选择中文模式时，图表的标题引导词以及参考文献，定理引导词等信息会变成中文。你可以通过下面两种方式来选择语言模式：
+% \begin{lstlisting}
+% \documentclass[lang=cn]{elegantpaper} % or
+% \documentclass{cn}{elegantpaper} 
+% \end{lstlisting}
+
+% \textbf{注意：} 英文模式下，由于没有添加中文宏包，无法输入中文。如果需要输入中文，可以通过在导言区引入中文宏包 \lstinline{ctex} 或者加入 \lstinline{xeCJK} 宏包后自行设置字体。 
+% \begin{lstlisting}
+% \usepackage[UTF8,scheme=plain]{ctex}
+% \end{lstlisting}
+
+% \subsection{数学字体选项}
+
+% 本模板定义了一个数学字体选项（\lstinline{math}），可选项有三个：
+% \begin{enumerate}
+%   \item \lstinline{math=cm}（默认），使用 \LaTeX{} 默认数学字体（推荐，无需声明）；
+%   \item \lstinline{math=newtx}，使用 \lstinline{newtxmath} 设置数学字体（潜在问题比较多）。
+%   \item \lstinline{math=mtpro2}，使用 \lstinline{mtpro2} 宏包设置数学字体，要求用户已经成功安装此宏包。
+% \end{enumerate}
+
+% \subsection{中文字体选项}
+
+% 模板提供中文字体选项 \lstinline{chinesefont}，可选项有
+% \begin{enumerate}
+%   \item \lstinline{ctexfont}：默认选项，使用 \lstinline{ctex} 宏包根据系统自行选择字体，可能存在字体缺失的问题，更多内容参考 \lstinline{ctex} 宏包\href{https://ctan.org/pkg/ctex}{官方文档}\footnote{可以使用命令提示符，输入 \lstinline{texdoc ctex} 调出本地 \lstinline{ctex} 宏包文档}。
+%   \item \lstinline{founder}：方正字体选项（\textbf{需要安装方正字体}），后台调用 \lstinline{ctex} 宏包并且使用 \lstinline{fontset=none} 选项，然后设置字体为方正四款免费字体，方正字体下载注意事项见后文，用户只需要安装方正字体即可使用该选项。
+%   \item \lstinline{nofont}：后台会调用 \lstinline{ctex} 宏包并且使用 \lstinline{fontset=none} 选项，不设定中文字体，用户可以自行设置中文字体，具体见后文。
+% \end{enumerate}
+
+% \subsubsection{方正字体选项}
+% 由于使用 \lstinline{ctex} 宏包默认调用系统已有的字体，部分系统字体缺失严重，因此，用户希望能够使用其它字体，我们推荐使用方正字体。方正的{\songti 方正书宋}、{\heiti 方正黑体}、{\kaishu 方正楷体}、{\fangsong 方正仿宋}四款字体均可免费试用，且可用于商业用途。用户可以自行从\href{http://www.foundertype.com/}{方正字体官网}下载此四款字体，在下载的时候请\textbf{务必}注意选择 GBK 字符集，也可以使用 \href{https://www.latexstudio.net/}{\LaTeX{} 工作室}提供的\href{https://pan.baidu.com/s/1BgbQM7LoinY7m8yeP25Y7Q}{方正字体，提取码为：njy9} 进行安装。安装时，{\kaishu Win 10 用户请右键选择为全部用户安装，否则会找不到字体。}
+
+% \begin{figure}[!htb]
+% \centering
+% \includegraphics[width=0.9\textwidth]{founder.png}
+% \end{figure}
+
+% \subsubsection{其他中文字体}
+% 如果你想完全自定义字体\footnote{这里仍然以方正字体为例。}，你可以选择 \lstinline{chinesefont=nofont}，然后在导言区设置即可，可以参考下方代码：
+% \begin{lstlisting}
+% \setCJKmainfont[BoldFont={FZHei-B01},ItalicFont={FZKai-Z03}]{FZShuSong-Z01}
+% \setCJKsansfont[BoldFont={FZHei-B01}]{FZKai-Z03}
+% \setCJKmonofont[BoldFont={FZHei-B01}]{FZFangSong-Z02}
+% \setCJKfamilyfont{zhsong}{FZShuSong-Z01}
+% \setCJKfamilyfont{zhhei}{FZHei-B01}
+% \setCJKfamilyfont{zhkai}[BoldFont={FZHei-B01}]{FZKai-Z03}
+% \setCJKfamilyfont{zhfs}[BoldFont={FZHei-B01}]{FZFangSong-Z02}
+% \newcommand*{\songti}{\CJKfamily{zhsong}}
+% \newcommand*{\heiti}{\CJKfamily{zhhei}}
+% \newcommand*{\kaishu}{\CJKfamily{zhkai}}
+% \newcommand*{\fangsong}{\CJKfamily{zhfs}}
+% \end{lstlisting}
+
+
+
+% \subsection{自定义命令}
+% 此模板并没有修改任何默认的 \LaTeX{} 命令或者环境\footnote{目的是保证代码的可复用性，请用户关注内容，不要太在意格式，这才是本工作论文模板的意义。}。另外，我自定义了 4 个命令：
+% \begin{enumerate}
+%   \item \lstinline{\email}：创建邮箱地址的链接，比如 \email{ddswhu@outlook.com}；
+%   \item \lstinline{\figref}：用法和 \lstinline{\ref} 类似，但是会在插图的标题前添加 <\textbf{图 n}> ；
+%   \item \lstinline{\tabref}：用法和 \lstinline{\ref} 类似，但是会在表格的标题前添加 <\textbf{表 n}>；
+%   \item \lstinline{\keywords}：为摘要环境添加关键词。
+% \end{enumerate}
+
+% \subsection{参考文献}
+
+% 文献部分，本模板调用了 biblatex 宏包，并提供了 biber（默认） 和 bibtex 两个后端选项，可以使用 \lstinline{bibend} 进行修改：
+
+% \begin{lstlisting}
+%   \documentclass[bibtex]{elegantpaper}
+%   \documentclass[bibend=bibtex]{elegantpaper}
+% \end{lstlisting}
+
+% 关于文献条目（bib item），你可以在谷歌学术，Mendeley，Endnote 中取，然后把它们添加到 \lstinline{reference.bib} 中。在文中引用的时候，引用它们的键值（bib key）即可。
+
+% 为了方便文献样式修改，模板引入了 \lstinline{bibstyle} 和 \lstinline{citestyle} 选项，默认均为数字格式（numeric），参考文献示例：\cite{cn1,en2,en3} 使用了中国一个大型的 P2P 平台（人人贷）的数据来检验男性投资者和女性投资者在投资表现上是否有显著差异。
+
+% 如果需要设置为国标 GB7714-2015，需要使用：
+% \begin{lstlisting}
+%   \documentclass[citestyle=gb7714-2015, bibstyle=gb7714-2015]{elegantpaper} 
+% \end{lstlisting}
+
+% 如果需要添加排序方式，可以在导言区加入
+% \begin{lstlisting}
+%   \ExecuteBibliographyOptions{sorting=ynt}
+% \end{lstlisting}
+
+% 启用国标之后，可以加入 \lstinline{sorting=gb7714-2015}。
+
+
+% \section{使用 newtx 系列字体}
+
+% 如果需要使用原先版本的 \lstinline{newtx} 系列字体，可以通过显示声明数学字体：
+
+% \begin{lstlisting}
+% \documentclass[math=newtx]{elegantpaper}
+% \end{lstlisting}
+
+% \subsection{连字符}
+
+% 如果使用 \lstinline{newtx} 系列字体宏包，需要注意下连字符的问题。
+% \begin{equation}
+%   \int_{R^q} f(x,y) dy.\emph{of\kern0pt f}
+% \end{equation}
+
+% \begin{lstlisting}
+% \begin{equation}
+%   \int_{R^q} f(x,y) dy.\emph{of \kern0pt f}
+% \end{equation}
+% \end{lstlisting}
+
+% \subsection{宏包冲突}
+
+% 有用户反馈模板在使用 \lstinline{yhmath} 以及 \lstinline{esvect} 等宏包时会报错：
+% \begin{lstlisting}
+% LaTeX Error:
+%    Too many symbol fonts declared.
+% \end{lstlisting}
+
+% 原因是在使用 \lstinline{newtxmath} 宏包时，重新定义了数学字体用于大型操作符，达到了 {\heiti 最多 16 个数学字体} 的上限，在调用其他宏包的时候，无法新增数学字体。为了减少调用非常用宏包，在此给出如何调用 \lstinline{yhmath} 以及 \lstinline{esvect} 宏包的方法。
+
+% 请在 \lstinline{elegantpaper.cls} 内搜索 \lstinline{yhmath} 或者 \lstinline{esvect}，将你所需要的宏包加载语句\textit{取消注释}即可。
+
+
+% \section{常见问题 FAQ}
+
+% \begin{enumerate}[label=\arabic*).]
+%   \item \textit{如何删除版本信息？}\\
+%     导言区不写 \lstinline|\version{x.xx}| 即可。
+%   \item \textit{如何删除日期？}\\
+%     需要注意的是，与版本 \lstinline{\version} 不同的是，导言区不写或注释 \lstinline{\date} 的话，仍然会打印出当日日期，原因是 \lstinline{\date} 有默认参数。如果不需要日期的话，日期可以留空即可，也即 \lstinline|\date{}|。
+%   \item \textit{如何获得中文日期？}\\
+%     为了获得中文日期，必须在中文模式下\footnote{英文模式下，由于未加载中文宏包，无法输入中文。}，使用 \lstinline|\date{\zhdate{2019/10/11}}|，如果需要当天的汉化日期，可以使用 \lstinline|\date{\zhtoday}|，这两个命令都来源于 \href{https://ctan.org/pkg/zhnumber}{\lstinline{zhnumber}} 宏包。
+%   \item \textit{如何添加多个作者？}\\
+%     在 \lstinline{\author} 里面使用 \lstinline{\and}，作者单位可以用 \lstinline{\\} 换行。
+%     \begin{lstlisting}
+%     \author{author 1\\ org. 1 \and author 2 \\ org. 2 }
+%     \end{lstlisting}
+%   \item \textit{如何添加中英文摘要？}\\
+%     请参考 \href{https://github.com/ElegantLaTeX/ElegantPaper/issues/5}{GitHub::ElegantPaper/issues/5}
+% \end{enumerate}
+
+
+% \section{致谢}
+
+% 特别感谢 \href{https://github.com/sikouhjw}{sikouhjw} 和 \href{https://github.com/syvshc}{syvshc}  长期以来对于 Github 上 issue 的快速回应，以及各个社区论坛对于 ElegantLaTeX 相关问题的回复。特别感谢 ChinaTeX 以及 \href{http://www.latexstudio.net/}{LaTeX 工作室} 对于本系列模板的大力宣传与推广。
+
+% 如果你喜欢我们的模板，你可以在 Github 上收藏我们的模板。
+
+% \nocite{*}
+% \printbibliography[heading=bibintoc, title=\ebibname]
+
+% \appendix
+% %\appendixpage
+% \addappheadtotoc
+
+\end{document}

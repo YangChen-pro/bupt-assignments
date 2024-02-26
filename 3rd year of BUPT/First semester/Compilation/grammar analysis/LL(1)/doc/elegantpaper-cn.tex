@@ -1,0 +1,1241 @@
+%!TEX program = xelatex
+% 完整编译: xelatex -> biber/bibtex -> xelatex -> xelatex
+\documentclass[lang=cn,11pt,a4paper]{elegantpaper}
+
+\title{LL(1)语法分析程序的设计与实现}
+\author{杨晨 \\学号2021212171}
+\institute{北京邮电大学 计算机学院}
+
+% \version{0.10}
+\date{\zhtoday}
+
+% 本文档命令
+\usepackage{array}
+\usepackage{xcolor}
+\newcommand{\ccr}[1]{\makecell{{\color{#1}\rule{1cm}{1cm}}}}
+
+\usepackage{fontspec}
+
+% 设置代码样式
+% 定义 Python 代码样式
+\lstdefinestyle{pythonstyle}{
+    language=Python,
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{gray!10},
+    commentstyle=\color{gray},
+    keywordstyle=\color{blue},
+    stringstyle=\color{green!60!black},
+    showstringspaces=false,
+    breaklines=true,
+    numberstyle=\tiny\color{gray},
+    frame=single,
+    rulecolor=\color{black},
+    captionpos=b,
+    tabsize=4,
+    morekeywords={as, with},
+    keywordstyle=[2]\color{orange},
+    keywordstyle=[3]\color{violet},
+    keywordstyle=[4]\color{teal},
+    keywordstyle=[5]\color{purple},
+    keywordstyle=[6]\color{cyan!60!black}
+}
+
+\setmonofont{Courier New}  % 设置代码块中的字体
+
+% 设置 Python 代码样式
+\lstset{
+    style=pythonstyle,
+}
+
+% 纯文本样式
+\lstdefinelanguage{text}{
+    basicstyle=\fontsize{7pt}{9pt}\ttfamily,
+    keywordstyle=\fontsize{7pt}{9pt}\ttfamily,
+    commentstyle=\fontsize{7pt}{9pt}\ttfamily,
+    stringstyle=\fontsize{7pt}{9pt}\ttfamily,
+    escapeinside={(*@}{@*)},
+    showstringspaces=false,
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=4
+}
+\begin{document}
+
+
+
+\maketitle
+% \tableofcontents
+
+\section{概述}
+
+\subsection{实验内容}
+
+编写语法分析程序，实现对算术表达式的语法分析。要求所分析算术表达式由如下的文法产生。
+
+\label{grammar}
+$$
+\begin{aligned}
+& E\rightarrow E+T | E-T | T \\
+& T\rightarrow T*F | T/F | F \\
+& F\rightarrow (E) | num
+\end{aligned}
+$$
+
+要求在对输入的算术表达式进行分析的过程中，依次输出所采用的产生式。
+
+编写LL(1)语法分析程序，实验要求和实现方法要求如下：
+
+\begin{enumerate}
+    \item 编程实现算法4.2，为给定文法自动构造预测分析表。
+    \item 编程实现算法4.1，构造LL(1)预测分析程序。
+\end{enumerate}
+
+    
+\subsection{开发环境}
+
+\begin{itemize}
+    \item Windows10
+    \item PyCharm 2023.2.4 (Professional Edition)
+\end{itemize}
+
+\section{程序的功能模块划分}
+
+\subsection{文法Grammar类}
+
+\subsubsection{定义}
+首先，考虑文法的特点，它的终结符和非终结符号，字母符号之间都具有互异、唯一的特点，所以可以用集合来存储。其次，考虑产生式，一个非终结符号，可能会有多个右部产生式，同时，为了方便查找产生式，可以用字典来存储产生式，字典的键值是左部符号，对应的值是一个列表，包含这个符号的所有产生式。
+
+\begin{lstlisting}[language=Python]
+class Grammar:
+    def __init__(self):
+        self.non_terminals = set()
+        self.terminals = set()
+        self.productions = {}
+        self.start_symbol = None
+\end{lstlisting}
+
+\lstinline{Grammar} 类的构造函数 \lstinline{__init__}初始化了文法对象的各个属性：
+\begin{itemize}
+    \item \lstinline{non_terminals} 是一个集合，用于存储非终结符（\lstinline{non-terminal}）。
+    \item \lstinline{terminals} 是一个集合，用于存储终结符（\lstinline{terminal}）。
+    \item \lstinline{productions} 是一个字典，用于存储产生式（\lstinline{production}）。字典的键是非终结符，值是该非终结符对应的产生式列表，其中列表中每个元素是一个字符串，对应一个产生式。
+    \item \lstinline{start_symbol} 是一个变量，用于文法存储起始符号。
+\end{itemize}
+
+\subsubsection{添加产生式}
+
+由于我们通常约定，终结符号是大写字母，而非终结符合是小写字母，所以可以利用这个特点来填充终结符号集合和非终结符号集合
+
+而产生式的右部长度不能确定，为了简单起见，采用一次插入一个产生式的方法，即如果产生式是形如
+$$
+\begin{aligned}
+& E\rightarrow E+T | E-T | T \\
+\end{aligned}
+$$
+这样的形式，那么则需要调用3次添加函数
+$$
+\begin{aligned}
+& add\_production('E', 'E+T') \\
+& add\_production('E', 'E-T') \\
+& add\_production('E', 'T')
+\end{aligned}
+$$
+
+\begin{lstlisting}[language=Python]
+# 添加产生式，non_terminal是非终结符，production是产生式
+def add_production(self, non_terminal, production):
+    if non_terminal not in self.productions:
+        self.productions[non_terminal] = []
+
+    self.productions[non_terminal].append(production)
+    self.non_terminals.add(non_terminal)
+
+    if production == "num":
+        self.terminals.add("num")
+    else:
+        for symbol in production:
+            if symbol.isalpha() and not symbol.islower():  # 是大写字母
+                self.non_terminals.add(symbol)
+            else:
+                self.terminals.add(symbol)
+\end{lstlisting}
+
+\lstinline{add_production}方法用于向文法中添加产生式。它接受两个参数：\lstinline{non_terminal}（非终结符）和 \lstinline{production}（产生式）。该方法将产生式添加到相应的非终结符的产生式列表中，并更新 \lstinline{non_terminals} 和 \lstinline{terminals} 集合。
+
+\subsubsection{消除左递归}
+
+左递归是指产生式右部以相同的非终结符开头的情况。这会对后续的LL1分析造成无限递归的死循环，所以，我们需要对文法做消除左递归的操作。消除左递归的方法如下
+
+对于有如下产生式的非终结符$A$：
+
+$$
+A\rightarrow A\alpha_1|A\alpha_2|\ldots|A\alpha_n|\beta_1|\beta_2|\ldots|\beta_m
+$$
+
+其中，$\beta_i(i=1,2,\ldots,m)$不以$A$打头。用如下产生式替代：
+
+$$
+\begin{aligned}
+& A\rightarrow \beta_1A'|\beta_2A'|\ldots|\beta_mA' \\
+& A'\rightarrow \alpha_1A'|\alpha_2A'|\ldots|\alpha_nA'|\varepsilon
+\end{aligned}
+$$
+
+\begin{lstlisting}[language=Python]
+# 消除左递归
+def eliminate_left_recursion(self):
+    non_terminals = list(self.non_terminals)
+
+    for left_element in non_terminals:
+        remove_list = []
+        for right_list in self.productions[left_element]:
+            if right_list[0] == left_element:
+                remove_list.append(right_list)
+                if left_element + "'" not in self.non_terminals:
+                    self.non_terminals.add(left_element + "'")
+                    self.productions[left_element + "'"] = []
+        if remove_list:  # 如果remove_list不为空
+            for right_str in remove_list:
+                self.productions[left_element].remove(right_str)
+                self.productions[left_element + "'"].append(
+                    right_str[1:] + left_element + "'"
+                )
+            self.productions[left_element + "'"].append("ε")
+            self.terminals.add("ε")
+            self.productions[left_element] = [
+                value + left_element + "'"
+                for value in self.productions[left_element]
+            ]
+\end{lstlisting}
+
+
+\lstinline{eliminate_left_recursion}方法用于消除文法中的左递归。
+
+
+该方法遍历文法中的每个非终结符，并检查其产生式列表中的产生式是否存在左递归。如果存在左递归，则会对产生式进行修改，将左递归的部分替换为新的非终结符。同时，新的非终结符会被添加到 \lstinline{non_terminals} 集合中，并且会添加一个产生空串（$\epsilon$）的产生式。最后，原始的产生式也会进行修改，以引用新的非终结符。
+
+\subsubsection{消除左公因子}
+
+在进行LL(1)分析时，如果文法中存在左公因子，会导致分析表中的某些表项具有两个或更多的元素，从而需要进行回溯操作。为了避免这种情况，我们可以通过提取左公因子的方法，将文法转换为不含左公因子的形式。这样，就可以得到满足LL(1)文法的要求，且不需要回溯操作的文法。消除方法如下：
+
+对于每个非终结符$A$，找出它的两个或更多候选式的最长公共前缀$\alpha$，如果$\alpha\not=\varepsilon$，有如下产生式：
+
+$$
+A\rightarrow \alpha\beta_1|\alpha\beta_2|\ldots|\alpha\beta_n|\gamma_1|\gamma_2|\ldots|\gamma_m
+$$
+
+其中，$\gamma_i(i=1,2,\ldots,m)$表示不以$\alpha$打头的表达式。用如下产生式替代：
+
+$$
+\begin{aligned}
+& A\rightarrow \alpha A'|\gamma_1|\gamma_2|\ldots|\gamma_m \\
+& A'\rightarrow \beta_1|\beta_2|\ldots|\beta_n
+\end{aligned}
+$$
+
+\begin{lstlisting}
+# 消除左公因子
+def eliminate_left_factor(self):
+    new_non_terminals = self.non_terminals  # 新的非终结符
+    new_productions = {}  # 新的产生式
+    while True:
+        tmp_productions = {}  # 用于存储新的产生式
+        for left_element in self.productions:  # 遍历产生式
+            right_list = self.productions[left_element]  # 右侧产生式列表
+            right_head = []  # 右侧产生式的首符号列表
+            for right_str in right_list:
+                right_head.append(right_str[0])
+            for i in range(len(right_head)):  # 遍历右侧产生式的首符号
+                for j in range(i + 1, len(right_head)):  # 遍历右侧产生式的首符号
+                    if (
+                        right_head[i] in self.non_terminals
+                        and right_head[j] in self.non_terminals
+                    ):  # 都是非终结符
+                        continue
+                    if right_head[i] == right_head[j]:  # 首符号相同,消除左公因子
+                        new_non_terminals.add(left_element + "'")
+                        if left_element + "'" not in tmp_productions:
+                            tmp_productions[left_element + "'"] = set()
+                        self.productions[left_element].remove(right_list[i])
+                        self.productions[left_element].remove(right_list[j])
+                        tmp_productions[left_element + "'"].add(right_list[i][1:])
+                        tmp_productions[left_element + "'"].add(right_list[j][1:])
+                        self.productions[left_element].add(
+                            right_head[i] + left_element + "'"
+                        )
+        new_productions.update(self.productions)  # 更新产生式
+        if tmp_productions == {}:  # 如果没有新的产生式，退出循环
+            break
+    self.productions = new_productions.copy()  # 更新产生式
+\end{lstlisting}
+
+\subsubsection{文法格式化输出}
+
+为了便于观察和调试，我还设计了将文法按照标准格式进行输出的方法
+
+\begin{lstlisting}
+# 输出文法
+def print_grammar(self):
+    for non_terminal in self.productions:
+        print(non_terminal + " -> " + " | ".join(self.productions[non_terminal]))
+    print()
+\end{lstlisting}
+
+可以在需要进行验证，或者调试的地方调用该方法，查看当前的文法
+
+\subsection{LL1分析器}
+
+\subsubsection{定义}
+
+考虑到First集和Follow集都和非终结符相对应，为了便于查找，所以用字典来存储。其中，由于每个非终结符合的First集里，元素都是互不相等且唯一的，所以，字典的键是非终结符，所对应的值是一个集合，集合中包含这个非终结符的First集的元素。同理，Follow集的设计也是如此
+
+对于预测分析表，由于它是一个二维表格，我们仍然可以用字典来存储，其中键是一个二元元组，包括非终结符和终结符，值是产生式右部。因为产生式的左部就是表中纵轴上的非终结符，故我们只需要记录产生式右部即可
+
+\begin{lstlisting}
+class LL1Parser:
+    def __init__(self):
+        self.first = {}
+        self.follow = {}
+        self.predictions_table = {}
+\end{lstlisting}
+
+\lstinline{LL1Parser} 类的构造函数 \lstinline{__init__}初始化了文法对象的各个属性：
+\begin{itemize}
+    \item \lstinline{first} 是一个字典，用于存储每个非终结符的First集
+    \item \lstinline{follow} 是一个字典，用于存储每个非终结符的Follow集
+    \item \lstinline{predictions_table} 是一个字典，用于存储预测分析表
+\end{itemize}
+
+\subsubsection{计算First集}
+构建非终结符和候选式的FIRST集，方法如下：
+
+对于任意产生式$A\rightarrow\alpha$，若$\alpha\not=\epsilon$，设该产生式为：
+
+$$
+A\rightarrow Y_1Y_2\ldots Y_k
+$$
+
+遍历产生式右部的每一个$Y_i$，如果：
+
+\begin{itemize}
+    \item $Y_i$是终结符，则$\alpha$的FIRST集中增加$Y_i$，终止遍历；
+    \item $Y_i$是非终结符，如果没有求出它的FIRST集，则递归求解。之后，$\alpha$的FIRST集并上$Y_i$的FIRST集。此后检查$Y_i$的FIRST集中是否包含$\varepsilon$（即是否能推导出$\varepsilon$），若不包含，则终止遍历。
+\end{itemize}
+
+最后，$A$的FIRST集为各个候选式的FIRST集的并。
+\begin{lstlisting}
+# 计算first集
+def compute_first(self, grammar):
+    for non_terminal in grammar.non_terminals:  # 初始化
+        self.first[non_terminal] = set()
+    for terminal in grammar.terminals:
+        self.first[terminal] = set()
+
+    for non_terminal in grammar.non_terminals:
+        self.calculate_first(grammar, non_terminal)
+
+    for non_terminal in grammar.non_terminals:  # 输出first集
+        print("First({}) = {}".format(non_terminal, self.first[non_terminal]))
+    print()
+
+# 计算单个非终结符的first集
+def calculate_first(self, grammar, non_terminal):
+    if len(grammar.productions[non_terminal]) == 0:
+        return
+
+    for terminal in grammar.terminals:
+        if terminal != "ε":
+            self.first[terminal].add(terminal)
+
+    for production in grammar.productions[non_terminal]:
+        if production == "num":
+            first_symbol = "num"
+        elif len(production) > 1 and production[1] == "'":
+            first_symbol = production[0:2]
+        else:
+            first_symbol = production[0]
+
+        if first_symbol in grammar.terminals:
+            self.first[non_terminal].add(first_symbol)
+        elif first_symbol in grammar.non_terminals:
+            self.calculate_first(grammar, first_symbol)
+            self.first[non_terminal].update(self.first[first_symbol])
+
+        if (
+            first_symbol in grammar.non_terminals
+            and "ε" in grammar.productions[first_symbol]
+        ):
+            if len(production) > 1:
+                if first_symbol == production[0]:
+                    second_symbol = production[1]
+                elif len(production) > 2 and first_symbol == production[0:2]:
+                    second_symbol = production[2]
+                    if len(production) > 3 and production[3] == "'":
+                        second_symbol += "'"
+                else:  # 右侧只有一个ε
+                    continue
+                self.calculate_first(grammar, second_symbol)
+                self.first[non_terminal].update(self.first[second_symbol])
+
+\end{lstlisting}
+
+主要功能函数是\lstinline{compute_first}，用于计算文法的First集合。它接受一个\lstinline{grammar}参数，表示输入的文法。
+
+在\lstinline{compute_first}函数中，首先对所有非终结符和终结符进行初始化，将它们的First集合初始化为空集。然后依次处理每个非终结符，调用\lstinline{calculate_first}函数进行计算。
+
+\lstinline{calculate_first}函数用于计算单个非终结符的First集合。它接受两个参数：\lstinline{grammar}表示输入的文法，\lstinline{non_terminal}表示当前要计算First集合的非终结符。
+
+首先，如果当前非终结符的产生式为空，则直接返回。接下来，将所有终结符加入到它们自己的First集合中。
+
+然后，对于当前非终结符的每个产生式，获取产生式的第一个符号作为\lstinline{first_symbol}。
+
+如果\lstinline{first_symbol}是终结符，则将它添加到当前非终结符的First集合中。
+
+如果\lstinline{first_symbol}是非终结符，则递归调用\lstinline{calculate_first}函数计算\lstinline{first_symbol}的First集合，并将结果合并到当前非终结符的First集合中。
+
+接下来，如果\lstinline{first_symbol}是非终结符且它的产生式中包含空串（"$\epsilon$"），则需要处理空串的情况。对于产生式右侧只有一个符号的情况，直接跳过。对于产生式右侧有两个以上符号的情况，获取第二个符号作为\lstinline{second_symbol}，然后递归调用\lstinline{calculate_first}函数计算\lstinline{second_symbol}的First集合，并将结果合并到当前非终结符的First集合中。
+
+\subsubsection{计算Follow集}
+下面的方法实现了构建非终结符的FOLLOW集：
+
+对于非终结符$B$，检查所有右部包含$B$的产生式$A\rightarrow\alpha BY_1Y_2\ldots Y_k$：
+
+遍历每一个$Y_i$，如果：
+
+\begin{itemize}
+    \item $Y_i$是终结符，则$B$的FOLLOW集中增加$Y_i$，终止遍历；
+    \item $Y_i$是非终结符，$B$的FOLLOW集并上$Y_i$的FIRST集中非空的部分。此后检查$Y_i$的FIRST集中是否包含$\varepsilon$（即是否能推导出$\varepsilon$），若不包含，则终止遍历。
+\end{itemize}
+
+如果遍历完$Y_k$并且$A\not=B$，则$A$的FOLLOW集包含在$B$的FOLLOW集中。
+
+\begin{lstlisting}
+# 计算follow集
+def compute_follow(self, grammar):
+    start_symbol = grammar.start_symbol
+
+    for non_terminal in grammar.non_terminals:  # 初始化
+        self.follow[non_terminal] = set()
+
+    self.follow[start_symbol].add("$")
+
+    while True:
+        changed = False
+
+        for non_terminal in grammar.non_terminals:
+            for production in grammar.productions[non_terminal]:
+                symbols = production
+
+                for i in range(len(symbols)):
+                    symbol = symbols[i]
+                    if i != len(symbols) - 1 and symbols[i + 1] == "'":
+                        symbol += "'"
+                        i += 1
+
+                    if symbol in grammar.non_terminals:  # 当前符号是非终结符
+                        if i == len(symbols) - 1:  # 最后一个符号
+                            original_set = self.follow[symbol].copy()
+                            self.follow[symbol].update(
+                                self.follow[non_terminal]
+                            )  # follow[symbol] = follow[symbol] + follow[non_terminal]
+                            changed = changed or (
+                                original_set != self.follow[symbol]
+                            )
+
+                        else:  # 不是最后一个符号
+                            next_symbol = symbols[i + 1]
+                            if i + 1 != len(symbols) - 1 and symbols[i + 2] == "'":
+                                next_symbol += "'"
+
+                            if next_symbol in grammar.terminals:  # 下一个符号是终结符,直接加入
+                                if next_symbol not in self.follow[symbol]:
+                                    original_set = self.follow[symbol].copy()
+                                    self.follow[symbol].add(next_symbol)
+                                    changed = changed or (
+                                        original_set != self.follow[symbol]
+                                    )
+
+                            else:  # 下一个符号是非终结符
+                                if (
+                                    "ε" in self.first[next_symbol]
+                                ):  # next_symbol的first集中有ε
+                                    original_set = self.follow[symbol].copy()
+                                    self.follow[symbol].update(
+                                        self.follow[non_terminal]
+                                    )  # follow[symbol] = follow[symbol] + follow[non_terminal]
+                                    changed = changed or (
+                                        original_set != self.follow[symbol]
+                                    )
+
+                                original_set = self.follow[symbol].copy()
+                                self.follow[symbol].update(
+                                    self.first[next_symbol] - {"ε"}
+                                )  # follow[symbol] = follow[symbol] + first[next_symbol] - {ε}
+                                changed = changed or (
+                                    original_set != self.follow[symbol]
+                                )
+
+        if not changed:
+            break
+
+    for non_terminal in grammar.non_terminals:  # 输出follow集
+        print("Follow({}) = {}".format(non_terminal, self.follow[non_terminal]))
+    print()
+\end{lstlisting}
+
+
+首先，代码通过初始化将每个非终结符的Follow集初始化为空集。然后，将起始符号的Follow集设置为包含结束符号"\$"。
+
+接下来，代码进入一个循环，直到不再有改变为止。在每一次循环中，代码遍历文法的所有非终结符号。
+
+对于每个非终结符号，代码遍历该非终结符号的每个产生式。产生式的右部可以包含终结符号和非终结符号。
+
+对于产生式右部的每个符号，代码根据不同的情况进行处理。
+
+当前符号是非终结符号：
+\begin{itemize}
+    \item 如果该非终结符号是产生式的最后一个符号，则将该非终结符号的Follow集与当前非终结符号的Follow集合并。即，$follow[symbol] = follow[symbol] + follow[non\_terminal]$。
+    \item 如果该非终结符号不是产生式的最后一个符号，则判断下一个符号。
+    \begin{itemize}
+        \item 如果下一个符号是终结符号，直接将其加入该非终结符号的Follow集。
+        \item 如果下一个符号是非终结符号，根据下一个符号的First集进行处理：
+        \begin{itemize}
+            \item 如果下一个符号的First集中包含空串"$\epsilon$"，则将该非终结符号的Follow集与当前非终结符号的Follow集合并。
+            \item 将该非终结符号的Follow集与下一个符号的First集（去除空串"$\epsilon$"）合并。
+        \end{itemize}
+    \end{itemize}
+          
+\end{itemize}
+  
+
+代码通过检查Follow集是否发生改变来判断是否需要继续进行迭代。如果Follow集没有发生改变，则退出循环。
+
+\subsubsection{是否满足LL(1)文法}
+
+判断文法是否是LL(1)文法，即检查每个产生式$A\rightarrow\alpha|\beta$，需要满足：
+
+\begin{itemize}
+    \item $\mathbf{FIRST}(\alpha)\cap\mathbf{FIRST}(\beta)=\varnothing$
+    \item 如果$A\rightarrow\varepsilon$，$\mathbf{FIRST}(\alpha)\cap\mathbf{FOLLOW}(A)=\varnothing$
+\end{itemize}
+
+\begin{lstlisting}
+# 检查是否是LL1文法
+def is_LL1(self, grammar):
+    for non_terminal, production in grammar.productions.items():
+        if len(production) > 1:  # 一个非终结符对应多个产生式
+            for p1 in production:  # First集合不相交
+                for p2 in production:
+                    if p1 != p2:
+                        head1 = p1[0]
+                        head2 = p2[0]
+                        if head1 == "n":
+                            head1 = "num"
+                        if head2 == "n":
+                            head2 = "num"
+                        if (
+                            len(self.first[head1].intersection(self.first[head2]))
+                            > 0
+                        ):
+                            print(
+                                "First集合相交: First{} = {} and First{} = {}".format(
+                                    head1,
+                                    self.first[head1],
+                                    head2,
+                                    self.first[head2],
+                                )
+                            )
+                            return False
+            epsilon_index = []
+            for index in range(len(production)):
+                head = production[index][0]
+                if head == "n":
+                    head = "num"
+                if "ε" in self.first[head]:
+                    epsilon_index.append(index)
+            if len(epsilon_index) != 0:  # First含ε，其他First集合和左部符号Follow集合不相交
+                for index in range(len(production)):
+                    if index not in epsilon_index:
+                        head = production[index][0]
+                        if head == "n":
+                            head = "num"
+                        if (
+                            len(
+                                self.first[head].intersection(
+                                    self.follow[non_terminal]
+                                )
+                            )
+                            > 0
+                        ):
+                            print(
+                                "First集合和Follow集合相交: First{} = {} and Follow{} = {}".format(
+                                    head,
+                                    self.first[head],
+                                    non_terminal,
+                                    self.follow[non_terminal],
+                                )
+                            )
+                            return False
+    return True
+\end{lstlisting}
+
+代码首先遍历文法的每个非终结符号和对应的产生式。对于每个非终结符号，如果它对应的产生式数量大于1（即存在多个产生式），则需要检查是否满足LL(1)文法的条件。
+\begin{enumerate}
+    \item 检查First集合是否相交：
+    \begin{itemize}
+        \item 对于每对不同的产生式p1和p2，取出它们的头部符号head1和head2。
+        \item 如果头部符号是"n"，则将其替换为"num"。
+        \item 如果first[head1]和first[head2]的交集非空，表示存在相交的First集合，即不满足LL(1)文法的条件。输出相交的First集合，并返回False表示不是LL(1)文法。
+    \end{itemize}
+    \item 检查是否存在产生式的First集合含有空串"$\epsilon$"：
+    \begin{itemize}
+        \item 遍历每个产生式，如果产生式头部符号的First集合中包含空串"$\epsilon$"，则记录该产生式的索引。
+        \item 如果存在记录的索引，表示存在产生式的First集合含有空串"$\epsilon$"。
+        \begin{itemize}
+            \item 对于每个不含有空串"$\epsilon$"的产生式，检查其头部符号的First集合和非终结符号的Follow集合是否相交。
+            \item 如果first[head].intersection(follow[non\_terminal])的交集非空，表示存在相交的First集合和Follow集合，即不满足LL(1)文法的条件。输出相交的First集合和Follow集合，并返回False表示不是LL(1)文法。
+        \end{itemize}
+    \end{itemize}
+\end{enumerate}
+
+如果代码执行完所有检查，并没有返回False，则表示文法是LL(1)文法，返回True表示是LL(1)文法。
+
+\subsubsection{算法4.2构造预测分析表}
+
+\begin{lstlisting}
+# 教材算法4.2
+def compute_predictions_table(self, grammar):
+    for production in grammar.productions:
+        left_element = production
+        for right_list in grammar.productions[production]:
+            if right_list[0] in grammar.non_terminals:  # 右侧第一个符号是非终结符
+                for a in self.first[right_list[0]]:  # 把A->a加入M[A,a]
+                    self.predictions_table[left_element, a] = right_list
+                if "ε" in self.first[right_list[0]]:
+                    for b in self.follow[left_element]:  # 把A->a加入M[A,b]
+                        self.predictions_table[left_element, b] = right_list
+            else:  # 右侧第一个符号是终结符
+                if right_list == "num":
+                    self.predictions_table[left_element, "num"] = right_list
+                else:
+                    self.predictions_table[left_element, right_list[0]] = right_list
+                if "ε" == right_list[0]:  # 把A->a加入M[A,a]
+                    for b in self.follow[left_element]:  # 把A->a加入M[A,b]
+                        self.predictions_table[left_element, b] = right_list
+
+    # 错误处理加入分析表
+    for non_terminal in grammar.non_terminals:
+        for symbol in self.follow[non_terminal]:
+            if (non_terminal, symbol) not in self.predictions_table:
+                self.predictions_table[non_terminal, symbol] = "synch"
+
+    # 输出预测分析表
+    for terminal in grammar.terminals:
+        if terminal == "ε":
+            terminal = "$"
+        print("\t{:10}".format(terminal), end="")
+    print()
+    for non_terminal in grammar.non_terminals:
+        print(non_terminal, end="")
+        for i in grammar.terminals:
+            if i == "ε":
+                i = "$"
+            if (non_terminal, i) in self.predictions_table:
+                print(
+                    "\t{:10}".format(
+                        non_terminal
+                        + " -> "
+                        + self.predictions_table[non_terminal, i]
+                    ),
+                    end="",
+                )
+            else:
+                print("\t{:10}".format(" "), end="")
+        print()
+    print()
+\end{lstlisting}
+
+这段代码是用于构建预测分析表的算法，实现了教材算法4.2的逻辑。
+
+首先，代码通过遍历文法的产生式来构建预测分析表。对于每个产生式，将产生式的左部作为\lstinline{left_element}。
+
+接下来，代码遍历该产生式的每个右部。如果右部的第一个符号是非终结符，则将该非终结符的First集中的每个终结符号加入预测分析表。即，对于每个终结符号\lstinline{a}，将产生式\lstinline{right_list}加入\lstinline{predictions_table[left_element, a]}。
+
+如果右部的第一个符号的First集中包含空串"$\epsilon$"，则还需要将左部的Follow集中的每个终结符号加入预测分析表。即，对于每个终结符号\lstinline{b}，将产生式\lstinline{right_list}加入\lstinline{predictions_table[left_element, b]}。
+
+如果右部的第一个符号是终结符，则将该终结符号加入预测分析表。如果右部的第一个符号是"$\epsilon$"，则将左部的Follow集中的每个终结符号加入预测分析表。
+
+接下来，代码处理错误情况。对于每个非终结符号，遍历其Follow集中的每个终结符号，如果\lstinline{(non_terminal, symbol)}不在预测分析表中，则将其加入，并将对应的值设置为"\lstinline{synch}"，表示错误处理。
+
+最后，代码输出预测分析表。按照表格形式输出每个终结符号，并在每个终结符号下面列出对应的产生式。如果预测分析表中没有对应的产生式，则输出空字符串。
+
+\subsubsection{算法4.1 LL(1)预测分析}
+
+\begin{lstlisting}
+# 教材算法4.1
+def parse(self, grammar, input_string):
+    print("{:30}".format("Stack"), "\t{:30}".format("Input"), "\tOutput")
+    stack = ["$", grammar.start_symbol]
+    ptr = 0
+    error_count = 0
+    while True:
+        print(
+            "{:30}".format("".join(stack)),
+            "\t{:30}".format(input_string[ptr:] + "$"),
+            end="",
+        )
+
+        if ptr == len(input_string):  # 输入串已经读完
+            now_string = "$"
+        elif input_string[ptr].isdigit():  # 输入串中的符号是数字
+            now_string = "num"
+        else:
+            now_string = input_string[ptr]
+
+        if ptr == len(input_string) and stack[-1] == "$":  # 分析完毕，退出
+            print("\t\n\033[93mComplete!\033[0m", end="")
+            if error_count == 0:
+                print("\t\033[92mNo error\033[0m\n")
+            else:
+                print("\t\033[91m{} error(s)\033[0m\n".format(error_count))
+            break
+        element = stack[-1]  # 栈顶元素
+        if element in grammar.terminals:  # 栈顶元素是终结符
+            if (element == "num" and now_string.isdigit()) or (
+                element == now_string
+            ):  # 栈顶元素和输入串中的符号相同
+                stack.pop()
+                ptr += 1
+                print("\t")
+            else:  # 栈顶元素和输入串中的符号不同
+                print(
+                    "\t\033[91mError\033[0m: {} != {}".format(element, now_string)
+                )
+                error_count += 1
+                stack.pop()
+        else:
+            if (element, now_string) in self.predictions_table:
+                stack.pop()
+                production = self.predictions_table[element, now_string]
+                if production == "synch":  # 预测分析表中对应的产生式是synch
+                    print(
+                        "\t\033[91mError\033[0m: predictions_table[{}, {}] is synch".format(
+                            element, now_string
+                        )
+                    )
+                    error_count += 1
+                else:  # 预测分析表中有对应的产生式
+                    print("\t{} -> {}".format(element, production))
+                    if production != "ε":
+                        re_production = self.pre_reversed(production)  # 反转产生式
+                        i = 0
+                        while i < len(re_production):  # 将产生式反序入栈
+                            if (
+                                i < len(re_production) - 1
+                                and re_production[i + 1] == "'"
+                            ):
+                                stack.append(re_production[i : i + 2])
+                                i += 2
+                            elif re_production[i : i + 3] == "num":
+                                stack.append("num")
+                                i += 3
+                            else:
+                                stack.append(re_production[i])
+                                i += 1
+            else:  # 预测分析表中没有对应的产生式
+                print(
+                    "\t\033[91mError\033[0m: predictions_table[{}, {}] is empty".format(
+                        element, now_string
+                    )
+                )
+                error_count += 1
+                ptr += 1
+\end{lstlisting}
+
+代码使用了一个栈来模拟语法分析过程。具体步骤如下：
+\begin{enumerate}
+    \item 初始化栈，将终结符"\$"和文法的起始符号压入栈中。
+    \item 循环进行以下步骤，直到分析完成或出现错误：
+    \begin{itemize}
+        \item 打印当前的栈内容、输入串和输出。
+        \item 检查是否分析完成，即输入串已经读完并且栈顶元素为终结符"\$"。如果是，则打印"Complete!"，检查是否存在错误并输出相关信息，然后退出循环。
+        \item 获取当前输入符号：
+        \begin{itemize}
+            \item 如果输入串已经读完（\lstinline{ptr == len(input_string)}），设置当前符号为"\$"。
+            \item 如果输入串中的符号是数字，则设置当前符号为"num"。
+            \item 否则，设置当前符号为输入串中的当前字符。
+        \end{itemize}
+        \item 获取栈顶元素。
+        \begin{itemize}
+            \item 如果栈顶元素是终结符：
+            \begin{itemize}
+                \item 如果栈顶元素和当前符号相同（包括数字和"num"的匹配），表示匹配成功，将栈顶元素弹出，指针向前移动一位。
+                \item 否则，表示匹配失败，输出错误信息，并将栈顶元素弹出。错误计数加1。
+            \end{itemize}
+            \item 如果栈顶元素是非终结符：
+            \begin{itemize}
+                \item 检查预测分析表（\lstinline{predictions_table}）中是否存在对应的产生式。
+                \item 如果存在：
+                \begin{itemize}
+                    \item 弹出栈顶元素。
+                    \item 获取对应的产生式。
+                    \item 如果产生式为"synch"，表示在预测分析表中对应的产生式是"synch"，即发生了错误。输出错误信息，并将错误计数加一。
+                    \item 否则，输出栈顶元素和对应的产生式，并将产生式反序入栈（从右向左）。
+                \end{itemize}
+                \item 如果不存在，表示在预测分析表中对应的产生式是空的，即发生了错误。输出错误信息，并将指针向前移动一位。错误计数加一。
+            \end{itemize}
+        \end{itemize}
+    \end{itemize}
+\end{enumerate}
+
+这样，预测分析器会不断从栈中弹出符号进行匹配或扩展，直到分析完成或出现错误。
+
+在每次循环中，代码会打印当前的栈内容、输入串和输出，以及相应的错误信息（如果有错误）。最后，根据是否存在错误，输出相应的完成信息。
+
+\section{使用说明}
+
+\textbf{直接运行\lstinline{Gramma_LL1.py}即可}
+
+下面是\lstinline{main}函数中，每条语句的逐行分析
+
+
+\subsection{输入给定文法}
+在\lstinline{Gramma_LL1.py}中，首先将给定文法添加到文法类中，便于后续分析
+\begin{lstlisting}
+grammar = Grammar()
+grammar.add_production("E", "E+T")
+grammar.add_production("E", "E-T")
+grammar.add_production("E", "T")
+grammar.add_production("T", "T*F")
+grammar.add_production("T", "T/F")
+grammar.add_production("T", "F")
+grammar.add_production("F", "(E)")
+grammar.add_production("F", "num")
+grammar.start_symbol = "E"
+
+grammar.print_grammar()
+
+print("Non-terminals:", grammar.non_terminals)
+print("Terminals:", grammar.terminals)
+print("Start symbol:", grammar.start_symbol)
+print("Productions:", grammar.productions, "\n")
+\end{lstlisting}
+
+打印出的文法类Grammar的情况如下
+\begin{lstlisting}[language=text]
+E -> E+T | E-T | T
+T -> T*F | T/F | F
+F -> (E) | num
+
+Non-terminals: {'F', 'T', 'E'}
+Terminals: {'num', ')', '+', '-', '(', '/', '*'}
+Start symbol: E
+Productions: {'E': ['E+T', 'E-T', 'T'], 'T': ['T*F', 'T/F', 'F'], 'F': ['(E)', 'num']} 
+\end{lstlisting}
+
+\subsection{消除左递归、左公因子}
+
+之后，需要对文法进行消除左递归，消除左公因子
+\begin{lstlisting}
+print("消除左递归和消除左公因子后")
+grammar.eliminate_left_recursion()
+grammar.eliminate_left_factor()
+
+grammar.print_grammar()
+
+print("Non-terminals:", grammar.non_terminals)
+print("Terminals:", grammar.terminals)
+print("Start symbol:", grammar.start_symbol)
+print("Productions:", grammar.productions, "\n")
+\end{lstlisting}
+
+输出消除左递归和消除左公因子后的文法
+
+\begin{lstlisting}[language=text]
+消除左递归和消除左公因子后
+E -> TE'
+T -> FT'
+F -> (E) | num
+T' -> *FT' | /FT' | ε
+E' -> +TE' | -TE' | ε
+
+Non-terminals: {'T', "E'", 'E', "T'", 'F'}
+Terminals: {'num', 'ε', ')', '+', '-', '(', '/', '*'}
+Start symbol: E
+Productions: {'E': ["TE'"], 'T': ["FT'"], 'F': ['(E)', 'num'], "T'": ["*FT'", "/FT'", 'ε'], "E'": ["+TE'", "-TE'", 'ε']} 
+\end{lstlisting}
+
+准备工作做完后，可以开始进行LL1分析
+首先构建LL1分析器，并构建First集和Follow集合
+\begin{lstlisting}
+ll1_parser = LL1Parser()
+ll1_parser.compute_first(grammar)
+ll1_parser.compute_follow(grammar)
+\end{lstlisting}
+
+\subsection{进行LL(1)分析}
+
+在进行LL1的预测分析前，我们需要检查文法是否满足LL(1)文法的条件，在满足LL(1)文法的条件下，才能构建预测分析表，并对给定输入进行分析
+\begin{lstlisting}
+ll1_parser = LL1Parser()
+ll1_parser.compute_first(grammar)
+ll1_parser.compute_follow(grammar)
+if ll1_parser.is_LL1(grammar):
+    print("经检查，该文法是LL1文法\n")
+    ll1_parser.compute_predictions_table(grammar)
+    input_string = ["1+2", "1+2*(3-(4/0))", "1+2*/(3-4/0))"]
+    for s in input_string:
+        ll1_parser.parse(grammar, s)
+else:
+    print("经检查，该文法不是LL1文法\n")
+
+\end{lstlisting}
+
+如果是LL(1)文法，则输出预测分析表
+\begin{lstlisting}[language = text]
+经检查，该文法是LL1文法
+	num       	$         	)         	+         	-         	(         	/         	*         
+T	T -> FT'  	T -> synch	T -> synch	T -> synch	T -> synch	T -> FT'  	          	          
+E'	          	E' -> ε   	E' -> ε   	E' -> +TE'	E' -> -TE'	          	          	          
+E	E -> TE'  	E -> synch	E -> synch	          	          	E -> TE'  	          	          
+T'	          	T' -> ε   	T' -> ε   	T' -> ε   	T' -> ε   	          	T' -> /FT'	T' -> *FT'
+F	F -> num  	F -> synch	F -> synch	F -> synch	F -> synch	F -> (E)  	F -> synch	F -> synch
+\end{lstlisting}
+
+
+\section{测试}
+
+\lstinline{input_string = ["1+2", "1+2*(3-(4/0))", "1+2*/(3-4/0))"]}
+
+
+\subsection{测试 1+2}
+该测试集用于测试一个简单的算数表达式能否被正确识别
+
+\subsubsection{输出结果}
+
+\begin{lstlisting}[language=text]
+Stack                          	Input                          	Output
+$E                             	1+2$                          	E -> TE'
+$E'T                           	1+2$                          	T -> FT'
+$E'T'F                         	1+2$                          	F -> num
+$E'T'num                       	1+2$                          	
+$E'T'                          	+2$                           	T' -> ε
+$E'                            	+2$                           	E' -> +TE'
+$E'T+                          	+2$                           	
+$E'T                           	2$                            	T -> FT'
+$E'T'F                         	2$                            	F -> num
+$E'T'num                       	2$                            	
+$E'T'                          	$                             	T' -> ε
+$E'                            	$                             	E' -> ε
+$                              	$                             	
+(*@\textcolor{orange}{Complete!}@*)	(*@\textcolor{green!60!black}{No error}@*)
+\end{lstlisting}
+
+
+\subsubsection{输出结果分析}
+
+这个LL(1)分析过程是针对输入表达式 "1+2" 进行的。下面是对该分析过程的简要分析结果：
+\begin{itemize}
+    \item 在开始时，我们有一个起始非终结符为E的文法规则。根据输入 "1+2"，我们将推导出E -> TE'。
+    \item 然后，我们将推导T -> FT'，因为输入中的下一个符号是 "1"。
+    \item 接着，我们将推导F -> num，因为输入中的下一个符号是 "1"，而 "2" 是一个数字。
+    \item 接下来，我们将进一步推导E' -> +TE'，因为输入中的下一个符号是 "+"。
+    \item 然后，我们将推导T -> FT'，因为输入中的下一个符号是 "2"。
+    \item 接着，我们将推导F -> num，因为输入中的下一个符号是 "2"，而 "2" 是一个数字。
+    \item 然后，我们将推导出T' -> ε，因为输入已经结束，而 T' 可以为空。
+    \item 最后，我们将推导出E' -> ε，因为输入已经结束，而 E' 可以为空。这表示我们成功地完成了对输入表达式的分析。
+\end{itemize}
+
+整个分析过程没有出现错误，意味着输入表达式是符合给定的文法规则的，并且可以被成功地分析和接受。
+
+\subsection{测试 1+2*(3-(4/0))}
+
+\subsubsection{输出结果}
+
+\begin{lstlisting}[language=text]
+Stack                          	Input                          	Output
+$E                             	1+2*(3-(4/0))$                	E -> TE'
+$E'T                           	1+2*(3-(4/0))$                	T -> FT'
+$E'T'F                         	1+2*(3-(4/0))$                	F -> num
+$E'T'num                       	1+2*(3-(4/0))$                	
+$E'T'                          	+2*(3-(4/0))$                 	T' -> ε
+$E'                            	+2*(3-(4/0))$                 	E' -> +TE'
+$E'T+                          	+2*(3-(4/0))$                 	
+$E'T                           	2*(3-(4/0))$                  	T -> FT'
+$E'T'F                         	2*(3-(4/0))$                  	F -> num
+$E'T'num                       	2*(3-(4/0))$                  	
+$E'T'                          	*(3-(4/0))$                   	T' -> *FT'
+$E'T'F*                        	*(3-(4/0))$                   	
+$E'T'F                         	(3-(4/0))$                    	F -> (E)
+$E'T')E(                       	(3-(4/0))$                    	
+$E'T')E                        	3-(4/0))$                     	E -> TE'
+$E'T')E'T                      	3-(4/0))$                     	T -> FT'
+$E'T')E'T'F                    	3-(4/0))$                     	F -> num
+$E'T')E'T'num                  	3-(4/0))$                     	
+$E'T')E'T'                     	-(4/0))$                      	T' -> ε
+$E'T')E'                       	-(4/0))$                      	E' -> -TE'
+$E'T')E'T-                     	-(4/0))$                      	
+$E'T')E'T                      	(4/0))$                       	T -> FT'
+$E'T')E'T'F                    	(4/0))$                       	F -> (E)
+$E'T')E'T')E(                  	(4/0))$                       	
+$E'T')E'T')E                   	4/0))$                        	E -> TE'
+$E'T')E'T')E'T                 	4/0))$                        	T -> FT'
+$E'T')E'T')E'T'F               	4/0))$                        	F -> num
+$E'T')E'T')E'T'num             	4/0))$                        	
+$E'T')E'T')E'T'                	/0))$                         	T' -> /FT'
+$E'T')E'T')E'T'F/              	/0))$                         	
+$E'T')E'T')E'T'F               	0))$                          	F -> num
+$E'T')E'T')E'T'num             	0))$                          	
+$E'T')E'T')E'T'                	))$                           	T' -> ε
+$E'T')E'T')E'                  	))$                           	E' -> ε
+$E'T')E'T')                    	))$                           	
+$E'T')E'T'                     	)$                            	T' -> ε
+$E'T')E'                       	)$                            	E' -> ε
+$E'T')                         	)$                            	
+$E'T'                          	$                             	T' -> ε
+$E'                            	$                             	E' -> ε
+$                              	$                             	
+(*@\textcolor{orange}{Complete!}@*)	(*@\textcolor{green!60!black}{No error}@*)
+\end{lstlisting}
+
+\subsubsection{输出结果分析}
+
+对于输入表达式 "1+2*(3-(4/0))"，经过LL(1)分析，我们发现：
+\begin{itemize}
+    \item 输入表达式符合给定的文法规则，没有语法错误。
+    \item 分析过程中成功地推导出了输入表达式的每个符号，从起始非终结符E开始，按照产生式规则进行推导。
+    \item 分析过程中遵循了LL(1)文法的规则，每次选择正确的产生式进行推导，并根据输入的下一个符号进行匹配。
+    \item 最终，成功地完成了对输入表达式的分析，没有剩余的输入符号，且分析栈为空。
+\end{itemize}
+
+分析过程中没遇到了除以零的情况，这表明输入表达式在语义上是不正确的，但输入表达式在语法上是合法的。综上所述，这个LL(1)分析结果表明，这个表达式语法上无误
+
+\subsection{测试 1+2*/(3-4/0))}
+
+\subsubsection{输出结果}
+
+\begin{lstlisting}[language=text]
+Stack                          	Input                          	Output
+$E                             	1+2*/(3-4/0))$                	E -> TE'
+$E'T                           	1+2*/(3-4/0))$                	T -> FT'
+$E'T'F                         	1+2*/(3-4/0))$                	F -> num
+$E'T'num                       	1+2*/(3-4/0))$                	
+$E'T'                          	+2*/(3-4/0))$                 	T' -> ε
+$E'                            	+2*/(3-4/0))$                 	E' -> +TE'
+$E'T+                          	+2*/(3-4/0))$                 	
+$E'T                           	2*/(3-4/0))$                  	T -> FT'
+$E'T'F                         	2*/(3-4/0))$                  	F -> num
+$E'T'num                       	2*/(3-4/0))$                  	
+$E'T'                          	*/(3-4/0))$                   	T' -> *FT'
+$E'T'F*                        	*/(3-4/0))$                   	
+$E'T'F                         	/(3-4/0))$                    	(*@\textcolor{red}{Error}@*): predictions_table[F, /] is synch
+$E'T'                          	/(3-4/0))$                    	T' -> /FT'
+$E'T'F/                        	/(3-4/0))$                    	
+$E'T'F                         	(3-4/0))$                     	F -> (E)
+$E'T')E(                       	(3-4/0))$                     	
+$E'T')E                        	3-4/0))$                      	E -> TE'
+$E'T')E'T                      	3-4/0))$                      	T -> FT'
+$E'T')E'T'F                    	3-4/0))$                      	F -> num
+$E'T')E'T'num                  	3-4/0))$                      	
+$E'T')E'T'                     	-4/0))$                       	T' -> ε
+$E'T')E'                       	-4/0))$                       	E' -> -TE'
+$E'T')E'T-                     	-4/0))$                       	
+$E'T')E'T                      	4/0))$                        	T -> FT'
+$E'T')E'T'F                    	4/0))$                        	F -> num
+$E'T')E'T'num                  	4/0))$                        	
+$E'T')E'T'                     	/0))$                         	T' -> /FT'
+$E'T')E'T'F/                   	/0))$                         	
+$E'T')E'T'F                    	0))$                          	F -> num
+$E'T')E'T'num                  	0))$                          	
+$E'T')E'T'                     	))$                           	T' -> ε
+$E'T')E'                       	))$                           	E' -> ε
+$E'T')                         	))$                           	
+$E'T'                          	)$                            	T' -> ε
+$E'                            	)$                            	E' -> ε
+$                              	)$                            	(*@\textcolor{red}{Error}@*): predictions_table[$, )] is empty
+$                              	$                             	
+(*@\textcolor{orange}{Complete!}@*)	(*@\textcolor{red}{2 error(s)}@*)
+\end{lstlisting}
+
+\subsubsection{输出结果分析}
+
+这个输出结果显示了对输入表达式 "1+2*/(3-4/0))" 进行LL(1)分析的过程。以下是对该输出结果的总结分析：
+\begin{itemize}
+    \item 在分析开始时，初始栈中有起始符号\$E，并且输入中包含完整的表达式 "1+2*/(3-4/0))"。
+    \item 在推导过程中，栈中的符号逐步变化，同时消耗输入符号，直到最终栈和输入都为空。
+    \item 在分析过程中，我们看到了两个错误。第一个错误发生在推导F -> (E) 时，因为输入中的下一个符号是 "/"，而在预测表中，F 和 "/" 之间没有产生式，因此出现了错误。第二个错误发生在分析完成后，栈和输入都为空时，预测表中没有定义栈顶符号为"\$"且输入符号为")"的产生式，因此也出现了错误。
+    \item 在第一个错误发生后，分析过程进行了错误恢复，将错误的输入符号视为同步点，弹出当前栈顶符号并继续分析。在第二个错误发生时，分析器会忽略多余的输入，")"被视为不属于语法规则的一部分，向前移动向前指针，跳过该符号
+\end{itemize}
+
+
+总体来说，这个输出结果显示了分析过程中的错误情况，但也展示了错误恢复的能力，使得分析过程能够继续进行直到完成。综上所述，这个输出结果表明在对输入表达式进行LL(1)分析的过程中，存在两个错误，并且分析过程能够进行错误恢复以继续分析，最终完成了分析过程。
+
+\section{实验总结}
+
+在本次实验中，我编写了一个LL(1)语法分析程序，通过这个实验我对语法分析的流程有了更清晰的理解，并加深了对相关知识点的掌握。
+
+我设计的语法分析程序的架构比较简单，主要的难点在于算法的设计。在实现过程中，我使用了Python的语法特性，这使得维护文法产生式和预测分析表等变得更容易，大大减少了编程的复杂度。
+
+然而，我也意识到我的语法分析程序仍然存在许多待改进的地方。例如，当出现分析错误时，程序可以输出更多的报错信息，以帮助用户更好地理解错误的原因。另外，在进行文法转换和求解集合时，程序的鲁棒性还有待提高，以处理各种边界情况和异常输入。尽管由于时间限制，我无法一一考虑到所有可能的情况，但我认识到这些改进是提高程序质量的重要一步。
+
+通过这次实验，我不仅对课内知识有了更深入的认识，还提高了我的Python编程能力。我从中获益匪浅，对语法分析和算法设计有了更深入的理解，并学会了如何运用所学知识解决实际问题。
+
+总之，这次实验是一次有益的经验，我很高兴能够完成并取得一定的成果。我期待在以后的学习和实践中继续深入研究语法分析以及相关领域的知识。
+% \subsection{全局选项}
+% 此模板定义了一个语言选项 \lstinline{lang}，可以选择英文模式 \lstinline{lang=en}（默认）或者中文模式 \lstinline{lang=cn}。当选择中文模式时，图表的标题引导词以及参考文献，定理引导词等信息会变成中文。你可以通过下面两种方式来选择语言模式：
+% \begin{lstlisting}
+% \documentclass[lang=cn]{elegantpaper} % or
+% \documentclass{cn}{elegantpaper} 
+% \end{lstlisting}
+
+% \textbf{注意：} 英文模式下，由于没有添加中文宏包，无法输入中文。如果需要输入中文，可以通过在导言区引入中文宏包 \lstinline{ctex} 或者加入 \lstinline{xeCJK} 宏包后自行设置字体。 
+% \begin{lstlisting}
+% \usepackage[UTF8,scheme=plain]{ctex}
+% \end{lstlisting}
+
+% \subsection{数学字体选项}
+
+% 本模板定义了一个数学字体选项（\lstinline{math}），可选项有三个：
+% \begin{enumerate}
+%   \item \lstinline{math=cm}（默认），使用 \LaTeX{} 默认数学字体（推荐，无需声明）；
+%   \item \lstinline{math=newtx}，使用 \lstinline{newtxmath} 设置数学字体（潜在问题比较多）。
+%   \item \lstinline{math=mtpro2}，使用 \lstinline{mtpro2} 宏包设置数学字体，要求用户已经成功安装此宏包。
+% \end{enumerate}
+
+% \subsection{中文字体选项}
+
+% 模板提供中文字体选项 \lstinline{chinesefont}，可选项有
+% \begin{enumerate}
+%   \item \lstinline{ctexfont}：默认选项，使用 \lstinline{ctex} 宏包根据系统自行选择字体，可能存在字体缺失的问题，更多内容参考 \lstinline{ctex} 宏包\href{https://ctan.org/pkg/ctex}{官方文档}\footnote{可以使用命令提示符，输入 \lstinline{texdoc ctex} 调出本地 \lstinline{ctex} 宏包文档}。
+%   \item \lstinline{founder}：方正字体选项（\textbf{需要安装方正字体}），后台调用 \lstinline{ctex} 宏包并且使用 \lstinline{fontset=none} 选项，然后设置字体为方正四款免费字体，方正字体下载注意事项见后文，用户只需要安装方正字体即可使用该选项。
+%   \item \lstinline{nofont}：后台会调用 \lstinline{ctex} 宏包并且使用 \lstinline{fontset=none} 选项，不设定中文字体，用户可以自行设置中文字体，具体见后文。
+% \end{enumerate}
+
+% \subsubsection{方正字体选项}
+% 由于使用 \lstinline{ctex} 宏包默认调用系统已有的字体，部分系统字体缺失严重，因此，用户希望能够使用其它字体，我们推荐使用方正字体。方正的{\songti 方正书宋}、{\heiti 方正黑体}、{\kaishu 方正楷体}、{\fangsong 方正仿宋}四款字体均可免费试用，且可用于商业用途。用户可以自行从\href{http://www.foundertype.com/}{方正字体官网}下载此四款字体，在下载的时候请\textbf{务必}注意选择 GBK 字符集，也可以使用 \href{https://www.latexstudio.net/}{\LaTeX{} 工作室}提供的\href{https://pan.baidu.com/s/1BgbQM7LoinY7m8yeP25Y7Q}{方正字体，提取码为：njy9} 进行安装。安装时，{\kaishu Win 10 用户请右键选择为全部用户安装，否则会找不到字体。}
+
+% \begin{figure}[!htb]
+% \centering
+% \includegraphics[width=0.9\textwidth]{founder.png}
+% \end{figure}
+
+% \subsubsection{其他中文字体}
+% 如果你想完全自定义字体\footnote{这里仍然以方正字体为例。}，你可以选择 \lstinline{chinesefont=nofont}，然后在导言区设置即可，可以参考下方代码：
+% \begin{lstlisting}
+% \setCJKmainfont[BoldFont={FZHei-B01},ItalicFont={FZKai-Z03}]{FZShuSong-Z01}
+% \setCJKsansfont[BoldFont={FZHei-B01}]{FZKai-Z03}
+% \setCJKmonofont[BoldFont={FZHei-B01}]{FZFangSong-Z02}
+% \setCJKfamilyfont{zhsong}{FZShuSong-Z01}
+% \setCJKfamilyfont{zhhei}{FZHei-B01}
+% \setCJKfamilyfont{zhkai}[BoldFont={FZHei-B01}]{FZKai-Z03}
+% \setCJKfamilyfont{zhfs}[BoldFont={FZHei-B01}]{FZFangSong-Z02}
+% \newcommand*{\songti}{\CJKfamily{zhsong}}
+% \newcommand*{\heiti}{\CJKfamily{zhhei}}
+% \newcommand*{\kaishu}{\CJKfamily{zhkai}}
+% \newcommand*{\fangsong}{\CJKfamily{zhfs}}
+% \end{lstlisting}
+
+
+
+% \subsection{自定义命令}
+% 此模板并没有修改任何默认的 \LaTeX{} 命令或者环境\footnote{目的是保证代码的可复用性，请用户关注内容，不要太在意格式，这才是本工作论文模板的意义。}。另外，我自定义了 4 个命令：
+% \begin{enumerate}
+%   \item \lstinline{\email}：创建邮箱地址的链接，比如 \email{ddswhu@outlook.com}；
+%   \item \lstinline{\figref}：用法和 \lstinline{\ref} 类似，但是会在插图的标题前添加 <\textbf{图 n}> ；
+%   \item \lstinline{\tabref}：用法和 \lstinline{\ref} 类似，但是会在表格的标题前添加 <\textbf{表 n}>；
+%   \item \lstinline{\keywords}：为摘要环境添加关键词。
+% \end{enumerate}
+
+% \subsection{参考文献}
+
+% 文献部分，本模板调用了 biblatex 宏包，并提供了 biber（默认） 和 bibtex 两个后端选项，可以使用 \lstinline{bibend} 进行修改：
+
+% \begin{lstlisting}
+%   \documentclass[bibtex]{elegantpaper}
+%   \documentclass[bibend=bibtex]{elegantpaper}
+% \end{lstlisting}
+
+% 关于文献条目（bib item），你可以在谷歌学术，Mendeley，Endnote 中取，然后把它们添加到 \lstinline{reference.bib} 中。在文中引用的时候，引用它们的键值（bib key）即可。
+
+% 为了方便文献样式修改，模板引入了 \lstinline{bibstyle} 和 \lstinline{citestyle} 选项，默认均为数字格式（numeric），参考文献示例：\cite{cn1,en2,en3} 使用了中国一个大型的 P2P 平台（人人贷）的数据来检验男性投资者和女性投资者在投资表现上是否有显著差异。
+
+% 如果需要设置为国标 GB7714-2015，需要使用：
+% \begin{lstlisting}
+%   \documentclass[citestyle=gb7714-2015, bibstyle=gb7714-2015]{elegantpaper} 
+% \end{lstlisting}
+
+% 如果需要添加排序方式，可以在导言区加入
+% \begin{lstlisting}
+%   \ExecuteBibliographyOptions{sorting=ynt}
+% \end{lstlisting}
+
+% 启用国标之后，可以加入 \lstinline{sorting=gb7714-2015}。
+
+
+% \section{使用 newtx 系列字体}
+
+% 如果需要使用原先版本的 \lstinline{newtx} 系列字体，可以通过显示声明数学字体：
+
+% \begin{lstlisting}
+% \documentclass[math=newtx]{elegantpaper}
+% \end{lstlisting}
+
+% \subsection{连字符}
+
+% 如果使用 \lstinline{newtx} 系列字体宏包，需要注意下连字符的问题。
+% \begin{equation}
+%   \int_{R^q} f(x,y) dy.\emph{of\kern0pt f}
+% \end{equation}
+
+% \begin{lstlisting}
+% \begin{equation}
+%   \int_{R^q} f(x,y) dy.\emph{of \kern0pt f}
+% \end{equation}
+% \end{lstlisting}
+
+% \subsection{宏包冲突}
+
+% 有用户反馈模板在使用 \lstinline{yhmath} 以及 \lstinline{esvect} 等宏包时会报错：
+% \begin{lstlisting}
+% LaTeX Error:
+%    Too many symbol fonts declared.
+% \end{lstlisting}
+
+% 原因是在使用 \lstinline{newtxmath} 宏包时，重新定义了数学字体用于大型操作符，达到了 {\heiti 最多 16 个数学字体} 的上限，在调用其他宏包的时候，无法新增数学字体。为了减少调用非常用宏包，在此给出如何调用 \lstinline{yhmath} 以及 \lstinline{esvect} 宏包的方法。
+
+% 请在 \lstinline{elegantpaper.cls} 内搜索 \lstinline{yhmath} 或者 \lstinline{esvect}，将你所需要的宏包加载语句\textit{取消注释}即可。
+
+
+% \section{常见问题 FAQ}
+
+% \begin{enumerate}[label=\arabic*).]
+%   \item \textit{如何删除版本信息？}\\
+%     导言区不写 \lstinline|\version{x.xx}| 即可。
+%   \item \textit{如何删除日期？}\\
+%     需要注意的是，与版本 \lstinline{\version} 不同的是，导言区不写或注释 \lstinline{\date} 的话，仍然会打印出当日日期，原因是 \lstinline{\date} 有默认参数。如果不需要日期的话，日期可以留空即可，也即 \lstinline|\date{}|。
+%   \item \textit{如何获得中文日期？}\\
+%     为了获得中文日期，必须在中文模式下\footnote{英文模式下，由于未加载中文宏包，无法输入中文。}，使用 \lstinline|\date{\zhdate{2019/10/11}}|，如果需要当天的汉化日期，可以使用 \lstinline|\date{\zhtoday}|，这两个命令都来源于 \href{https://ctan.org/pkg/zhnumber}{\lstinline{zhnumber}} 宏包。
+%   \item \textit{如何添加多个作者？}\\
+%     在 \lstinline{\author} 里面使用 \lstinline{\and}，作者单位可以用 \lstinline{\\} 换行。
+%     \begin{lstlisting}
+%     \author{author 1\\ org. 1 \and author 2 \\ org. 2 }
+%     \end{lstlisting}
+%   \item \textit{如何添加中英文摘要？}\\
+%     请参考 \href{https://github.com/ElegantLaTeX/ElegantPaper/issues/5}{GitHub::ElegantPaper/issues/5}
+% \end{enumerate}
+
+
+% \section{致谢}
+
+% 特别感谢 \href{https://github.com/sikouhjw}{sikouhjw} 和 \href{https://github.com/syvshc}{syvshc}  长期以来对于 Github 上 issue 的快速回应，以及各个社区论坛对于 ElegantLaTeX 相关问题的回复。特别感谢 ChinaTeX 以及 \href{http://www.latexstudio.net/}{LaTeX 工作室} 对于本系列模板的大力宣传与推广。
+
+% 如果你喜欢我们的模板，你可以在 Github 上收藏我们的模板。
+
+% \nocite{*}
+% \printbibliography[heading=bibintoc, title=\ebibname]
+
+% \appendix
+% %\appendixpage
+% \addappheadtotoc
+
+\end{document}

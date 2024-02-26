@@ -1,0 +1,24 @@
+filename: 15.txt
+min_cost: 5506.88
+best_path: 20 9 7 16 3 13 12 21 10 8 19 11 22 5 17 20 
+time: 0.0083363s
+search node: 256955
+
+filename: 20.txt
+min_cost: 6987.51
+best_path: 20 9 7 16 3 13 2 15 12 14 21 10 1 8 18 19 11 22 5 17 20 
+time: 2.91684s
+search node: 76329668
+
+filename: 22.txt
+min_cost: 7690.8
+best_path: 20 9 7 16 3 13 2 15 12 14 21 10 1 4 6 18 8 19 11 22 5 17 20 
+time: 20.1967s
+search node: 487370492
+
+filename: 30.txt
+min_cost: 11426.6
+best_path: 20 15 25 26 27 21 28 23 19 9 3 5 6 7 30 13 1 2 14 10 17 4 29 24 11 18 16 8 22 12 20 
+time: 142.337s
+search node: 3893952727
+

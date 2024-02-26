@@ -1,0 +1,490 @@
+%!TEX program = xelatex
+% 完整编译: xelatex -> biber/bibtex -> xelatex -> xelatex
+\documentclass[lang=cn,11pt,a4paper]{elegantpaper}
+
+\title{python中文件创建、读取与反序列化}
+\author{杨晨 \\学号2021212171}
+\institute{北京邮电大学 计算机学院}
+
+% \version{0.10}
+\date{\zhtoday}
+
+% 本文档命令
+\usepackage{array}
+\usepackage{xcolor}
+\newcommand{\ccr}[1]{\makecell{{\color{#1}\rule{1cm}{1cm}}}}
+
+% 设置全局代码样式
+\lstset{
+  language=Python, % 设置语言为Python
+  basicstyle=\ttfamily, % 设置基本样式为等宽字体
+  keywordstyle=\color{blue}, % 设置关键字颜色为蓝色
+  commentstyle=\color{green!60!black}, % 设置注释颜色为绿色
+  stringstyle=\color{orange}, % 设置字符串颜色为橙色
+  showstringspaces=false, % 不显示字符串中的空格
+  frame=single, % 添加边框
+  breaklines=true, % 自动断行
+  numberstyle=\tiny\color{gray}, % 设置行号样式为小号灰色
+  captionpos=b % 设置标题位置为底部
+}
+
+\lstdefinelanguage{text}{
+    basicstyle=\ttfamily,
+    keywordstyle=\ttfamily,
+    commentstyle=\ttfamily,
+    stringstyle=\ttfamily,
+    showstringspaces=false,
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=4
+}
+
+\begin{document}
+
+
+
+\maketitle
+\tableofcontents
+
+\section{概述}
+
+\subsection{实验内容}
+
+\begin{enumerate}
+    \item 通过python程序创建具有1千行、1万行、10万行的文本和二进制文件，每行的内容不限，自定义即可。请观察程序运行的时间，并给出数据量与写入、读取时间的相关性结论。
+    \item  通过python程序创建csv文件，行数在1000行以上，至少有一列为数字类型。创建后读入该文件，要求求出该列数字之和。不允许使用numpy、pandas等第三方模块。
+    \item  反序列化
+    \begin{enumerate}
+        \item 读取QQ群文件中给出的object.dat，通过程序修改里面的内容，将语文的分数恢复为100，将姓名“张三”改为“李四”。
+        \item 使用反序列化方法，显示出修改前和修改后object.dat的内容。
+    \end{enumerate}
+\end{enumerate}
+
+\subsection{开发环境}
+
+\begin{itemize}
+    \item Windows10
+    \item PyCharm 2023.2.1
+\end{itemize}
+
+\section{实验过程}
+
+\subsection{数据量与写入、读取时间的相关性分析}
+
+\subsubsection{创建文件}
+通过Python程序创建不同大小的文本和二进制文件，并观察程序运行的时间，可以得出数据量与写入、读取时间之间的相关性结论。
+
+首先，我们需要编写Python程序来创建指定行数的文本和二进制文件。下面是我的程序：
+
+\begin{lstlisting}
+import time
+# 创建文本文件
+def create_textFile(fileName, numLines):
+    start_time = time.time()
+    with open(fileName, 'w') as f:
+        for i in range(numLines):
+            f.write(f"This is line {i+1}\n")
+    end_time = time.time()
+    print(f"创建文本文件{fileName}，共{numLines}行，耗时{end_time-start_time}秒")
+
+# 创建二进制文件
+def create_binaryFile(fileName, numLines):
+    start_time = time.time()
+    with open(fileName, 'wb') as f:
+        for i in range(numLines):
+            # 创建一个包含单个字节的字节数组
+            data = bytes([(i+1) % 256]) + b"\n"
+            f.write(data)
+    end_time = time.time()
+    print(f"创建二进制文件{fileName}，共{numLines}行，耗时{end_time-start_time}秒")
+
+\end{lstlisting}
+
+上述程序中，我们定义了两个函数：\lstinline{create_textFile}和\lstinline{create_binaryFile}，分别用于创建文本文件和二进制文件。这两个函数接受2个参数\lstinline{fileName}和\lstinline{numLines}，表示文件名和文件中的行数。在每个函数中，我们使用\lstinline{open()}函数打开文件，并根据行数循环写入内容。最后，我们使用、\lstinline{time}模块记录文件创建过程的时间，并打印出结果。
+
+可以通过修改\lstinline{numLines}的值为1万行或10万行，观察创建文件的时间变化情况。
+
+\subsubsection{读取文件}
+
+其次，我们需要编写Python程序来读取刚刚创建的文本文件和二进制文件，下面是我的程序：
+\begin{lstlisting}
+import time
+# 读取文本文件
+def read_textFile(fileName):
+    start_time = time.time()
+    with open(fileName, 'r') as f:
+        lines = f.readlines()
+    end_time = time.time()
+    print(f"读取文本文件{fileName}，共{len(lines)}行，耗时{end_time-start_time}秒")
+# 读取二进制文件
+def read_binaryFile(fileName):
+    start_time = time.time()
+    with open(fileName, 'rb') as f:
+        lines = f.readlines()
+    end_time = time.time()
+    print(f"读取二进制文件{fileName}，共{len(lines)}行，耗时{end_time-start_time}秒")
+\end{lstlisting}
+
+上述程序中，我们定义了两个函数：\lstinline{read_textFile}和\lstinline{read_binaryFile}，分别用于创建文本文件和二进制文件。这两个函数接受1个参数\lstinline{fileName}，表示文件名。在每个函数中，我们使用\lstinline{open()}函数打开文件，并使用\lstinline{readlines()}方法读取文件的所有行。读取的内容将存储在lines变量中。接着，记录结束时间。最后，打印结果。
+
+\subsubsection{主函数}
+
+程序的主函数如下：
+\begin{lstlisting}
+if __name__ == "__main__":
+    lines = [1000, 10000, 100000]
+    for line in lines:
+        create_textFile(f"text_{line}.txt", line)
+        read_textFile(f"text_{line}.txt")
+        create_binaryFile(f"binary_{line}.bin", line)
+        read_binaryFile(f"binary_{line}.bin")
+        print()
+\end{lstlisting}
+
+在主函数中，首先定义了一个列表\lstinline{lines}，其中包含了需要测试的文件行数：1千行、1万行、10万行。然后使用循环遍历该列表，对于每个行数，依次执行以下操作：
+\begin{itemize}
+    \item 调用\lstinline{create_textFile()}函数创建相应行数的文本文件。
+    \item 调用\lstinline{read_textFile()}函数读取创建的文本文件，并输出读取时间。
+    \item 调用\lstinline{create_binaryFile()}函数创建相应行数的二进制文件。
+    \item 调用\lstinline{read_binaryFile()}函数读取创建的二进制文件，并输出读取时间。
+    \item 打印空行，用于分隔不同行数的测试结果。
+\end{itemize}
+
+通过以上代码，我们可以测试不同行数的文本和二进制文件的创建和读取时间，并观察数据量与读取时间之间的关系。
+
+\subsubsection{实验结果}
+\begin{lstlisting}[language=text]
+创建文本文件text_1000.txt，共1000行，耗时0.0秒
+读取文本文件text_1000.txt，共1000行，耗时0.0010001659393310547秒
+创建二进制文件binary_1000.bin，共1000行，耗时0.0秒
+读取二进制文件binary_1000.bin，共1004行，耗时0.0秒
+
+创建文本文件text_10000.txt，共10000行，耗时0.00599980354309082秒
+读取文本文件text_10000.txt，共10000行，耗时0.002000093460083008秒
+创建二进制文件binary_10000.bin，共10000行，耗时0.0029997825622558秒
+读取二进制文件binary_10000.bin，共10040行，耗时0.0秒
+
+创建文本文件text_100000.txt，共100000行，耗时0.05600142478942871秒
+读取文本文件text_100000.txt，共100000行，耗时0.013054847717285156秒
+创建二进制文件binary_100000.bin，共100000行，耗时0.03000378608703秒
+读取二进制文件binary_100000.bin，共100391行，耗时0.001999855041503秒
+\end{lstlisting}
+
+\subsection{创建和读取CSV文件}
+
+\subsubsection{创建CSV文件}
+
+首先定义了一个名为\lstinline{create_csv}的函数，用于创建一个CSV文件。函数接受两个参数，\lstinline{fileName}表示要创建的文件名，\lstinline{numLines}表示要创建的行数。在函数内部，使用\lstinline{open}函数打开文件，并将打开的文件对象赋值给\lstinline{csvfile}变量。然后，使用\lstinline{csv.writer}创建一个\lstinline{writer}对象，该对象可以将数据写入CSV文件。
+
+在创建CSV文件之前，通过\lstinline{writer.writerow}写入了文件的第一行，包含了三个列的标题，即\lstinline{"id"}、\lstinline{"name"}和\lstinline{"score"}。接下来，使用\lstinline{range}函数和循环，根据指定的行数创建数据，并将每行数据写入CSV文件
+
+\begin{lstlisting}
+import csv
+# 创建CSV文件
+def create_csv(fileName, numLines):
+    with open(fileName, "w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["id", "name", "score"])
+        for i in range(numLines):
+            writer.writerow([i, "name" + str(i + 1), i * 2])
+\end{lstlisting}
+
+\subsubsection{读取CSV文件并对数字列求和}
+代码定义了一个名为\lstinline{read_csv}的函数，用于读取CSV文件并计算指定列的和。函数接受两个参数，\lstinline{fileName}表示要读取的文件名，\lstinline{index}表示要计算和的列的索引。
+
+在函数内部，使用\lstinline{open}函数打开CSV文件，并将打开的文件对象赋值给\lstinline{csvfile}变量。然后，使用\lstinline{csv.reader}创建一个\lstinline{reader}对象，该对象可以逐行读取CSV文件的内容。
+
+通过\lstinline{next(reader)}跳过第一行，即标题行，因为我们只需要计算数据行的和。然后，使用循环遍历每一行数据，将指定列的值转换为整数，并累加到sum变量中。最后，函数返回计算得到的和。
+\begin{lstlisting}
+# 读取CSV文件并计算数字列的和
+def read_csv(fileName, index):
+    with open(fileName, "r") as csvfile:
+        reader = csv.reader(csvfile)
+        next(reader)  # 跳过第一行
+        sum = 0
+        for line in reader:
+            sum += int(line[index])
+    return sum
+\end{lstlisting}
+
+\subsubsection{主函数}
+\begin{lstlisting}
+if __name__ == "__main__":
+    create_csv("data.csv", 1024)
+    print(f"sum = {read_csv('data.csv', 2)}")
+\end{lstlisting}
+在主函数中，首先调用\lstinline{create_csv}函数创建名为\lstinline{"data.csv"}的CSV文件，行数为1024。然后，调用\lstinline{read_csv}函数读取\lstinline{"data.csv"}文件的第二列数据，并计算列的和。最后，使用\lstinline{print}函数输出计算得到的和。
+
+通过以上代码，可以实现创建CSV文件并读取其中的数据，计算指定列的和，并将结果输出。
+
+\subsubsection{实验结果}
+\begin{lstlisting}[language=text]
+sum = 1047552
+\end{lstlisting}
+
+\subsection{序列化与反序列化}
+
+\subsubsection{读取dat文件，反序列化后输出}
+
+首先，我们需要加载\lstinline{pickle}模块来进行反序列化操作。
+
+定义了一个名为\lstinline{showData}的函数，用于显示反序列化后的数据。函数接受一个参数\lstinline{file}，表示要读取的序列化文件。在函数内部，使用\lstinline{open}函数打开指定的文件，并以二进制模式读取（\lstinline{'rb'}）。接着，通过\lstinline{pickle.load}函数从文件中逐个读取对象，并打印出来。使用\lstinline{try-except}结构来捕获\lstinline{EOFError}异常，当读取完所有对象时，\lstinline{pickle.load}函数会抛出该异常，此时跳出循环。
+
+\begin{lstlisting}
+import pickle
+
+# 显示反序列化后的数据
+def showData(file):
+    with open(file, 'rb') as f:
+        while True:  # 有多个对象，循环读取
+            try:
+                data = pickle.load(f)
+                print(data)
+            except EOFError:
+                break
+\end{lstlisting}
+
+\subsubsection{修改文件，序列化保存}
+定义了一个名为\lstinline{modify}的函数，用于修改序列化后的对象数据。函数接受两个参数，\lstinline{input_file}表示输入的序列化文件，\lstinline{output_file}表示输出的修改后的序列化文件。
+
+在函数内部，通过\lstinline{open}函数以二进制模式打开输入文件，并使用\lstinline{pickle.load}函数从文件中读取两个对象数据，分别赋值给\lstinline{data1}和\lstinline{data2}。
+
+接下来，对\lstinline{data2}进行修改。根据PPT的示例，需要将\lstinline{data2}中第二个字典对象的\lstinline{score}字典的\lstinline{语文}键的值改为\lstinline{100}，将\lstinline{name}键的值改为\lstinline{'李四'}。
+
+最后，使用\lstinline{open}函数以二进制模式打开输出文件，并使用\lstinline{pickle.dump}函数将修改后的\lstinline{data1}和\lstinline{data2}对象分别序列化并写入输出文件。
+
+\begin{lstlisting}
+def modify(input_file, output_file):
+    with open(input_file, 'rb') as f:
+         data1 = pickle.load(f)
+         data2 = pickle.load(f)
+    data2[1]['score']['语文'] = 100
+    data2[1]['name'] = '李四'
+
+    # 序列化回文件
+    with open(output_file, 'wb') as f:
+        pickle.dump(data1, f)
+        pickle.dump(data2, f)
+\end{lstlisting}
+
+\subsubsection{主函数}
+
+在主函数中，首先打印提示信息\lstinline{"反序列化后的数据："}，然后调用\lstinline{showData}函数读取并显示名为\lstinline{"object.dat"}的序列化文件中的对象数据。
+
+接着，调用\lstinline{modify}函数，传入\lstinline{"object.dat"}作为输入文件，\lstinline{"modified_object.dat"}作为输出文件，对序列化文件中的对象数据进行修改。
+
+最后，再次打印提示信息\lstinline{"修改后的数据："}，并调用\lstinline{showData}函数读取并显示修改后的序列化文件\lstinline{"modified_object.dat"}中的对象数据。
+
+\begin{lstlisting}
+if __name__ == '__main__':
+    print("反序列化后的数据：")
+    showData("object.dat")
+    modify("object.dat", "modified_object.dat")
+    print("修改后的数据：")
+    showData("modified_object.dat")
+\end{lstlisting}
+
+通过以上代码，可以实现对序列化文件中的对象数据进行反序列化、显示、修改以及再次序列化的操作。
+
+\subsubsection{实验结果}
+\begin{lstlisting}[language=text]
+反序列化后的数据：
+Test
+('Justfortest', {'name': '张三', 'score': {'语文': 105, '数学': 123, '英语': 88}})
+修改后的数据：
+Test
+('Justfortest', {'name': '李四', 'score': {'语文': 100, '数学': 123, '英语': 88}})
+\end{lstlisting}
+
+\section{实验总结}
+
+本次实验涉及了三个主题，分别是文件操作、CSV文件读写和反序列化。以下是对每个主题的实验结果和总结：
+
+\textbf{1. 文件操作}：
+\begin{itemize}
+   \item 在创建具有不同行数的文本和二进制文件时，观察到数据量与写入、读取时间之间存在一定的相关性。
+   \item 随着行数的增加，写入和读取的时间也会相应增加。
+   \item 对于文本文件，写入和读取时间的增长速度相对较慢，尤其是在较小的文件中。
+   \item 对于二进制文件，写入和读取时间的增长速度更快，尤其是在较大的文件中。
+   \item 这是因为在处理更大的数据量时，文件操作需要更多的时间来完成读写操作。
+\end{itemize}
+
+\textbf{2. CSV文件读写}：
+\begin{itemize}
+   \item 在创建包含1000行以上的CSV文件时，至少有一列为数字类型。
+   \item 成功读取创建的CSV文件，并成功计算该列数字之和。
+   \item 由于要求不允许使用第三方模块如numpy和pandas，实现了一种基本的CSV文件读写和计算数字之和的方法。
+   \item 该方法涉及对文件的逐行读取和解析，以提取数字列的值并进行求和运算。
+   \item 性能方面，该方法可能在处理大型CSV文件时效率较低，因为它使用了基本的文件操作和迭代解析方法。
+\end{itemize}
+
+\textbf{3. 反序列化}：
+\begin{itemize}
+   \item 成功读取给定的object.dat文件，并通过程序修改文件内容。
+   \item 将语文的分数恢复为100，将姓名“张三”改为“李四”。
+   \item 使用反序列化方法，成功显示了修改前和修改后object.dat文件的内容。
+   \item 反序列化是一种将对象转换为字节流的过程，使得可以在不同程序之间传输和存储对象。
+   \item 在本实验中，反序列化方法被用于读取和修改二进制文件，并验证了修改的结果。
+\end{itemize}
+
+总结来说，本次实验通过Python程序展示了文件操作、CSV文件读写和反序列化的基本概念和实现方法。在文件操作方面，观察到数据量与写入、读取时间之间的相关性。在CSV文件读写方面，通过基本的文件操作和解析方法成功读取了文件并进行了数字之和的计算。在反序列化方面，展示了读取和修改二进制文件内容的过程。这些实验结果和方法为进一步学习和应用文件操作、数据处理和序列化提供了基础。
+
+
+% \subsection{全局选项}
+% 此模板定义了一个语言选项 \lstinline{lang}，可以选择英文模式 \lstinline{lang=en}（默认）或者中文模式 \lstinline{lang=cn}。当选择中文模式时，图表的标题引导词以及参考文献，定理引导词等信息会变成中文。你可以通过下面两种方式来选择语言模式：
+% \begin{lstlisting}
+% \documentclass[lang=cn]{elegantpaper} % or
+% \documentclass{cn}{elegantpaper} 
+% \end{lstlisting}
+
+% \textbf{注意：} 英文模式下，由于没有添加中文宏包，无法输入中文。如果需要输入中文，可以通过在导言区引入中文宏包 \lstinline{ctex} 或者加入 \lstinline{xeCJK} 宏包后自行设置字体。 
+% \begin{lstlisting}
+% \usepackage[UTF8,scheme=plain]{ctex}
+% \end{lstlisting}
+
+% \subsection{数学字体选项}
+
+% 本模板定义了一个数学字体选项（\lstinline{math}），可选项有三个：
+% \begin{enumerate}
+%   \item \lstinline{math=cm}（默认），使用 \LaTeX{} 默认数学字体（推荐，无需声明）；
+%   \item \lstinline{math=newtx}，使用 \lstinline{newtxmath} 设置数学字体（潜在问题比较多）。
+%   \item \lstinline{math=mtpro2}，使用 \lstinline{mtpro2} 宏包设置数学字体，要求用户已经成功安装此宏包。
+% \end{enumerate}
+
+% \subsection{中文字体选项}
+
+% 模板提供中文字体选项 \lstinline{chinesefont}，可选项有
+% \begin{enumerate}
+%   \item \lstinline{ctexfont}：默认选项，使用 \lstinline{ctex} 宏包根据系统自行选择字体，可能存在字体缺失的问题，更多内容参考 \lstinline{ctex} 宏包\href{https://ctan.org/pkg/ctex}{官方文档}\footnote{可以使用命令提示符，输入 \lstinline{texdoc ctex} 调出本地 \lstinline{ctex} 宏包文档}。
+%   \item \lstinline{founder}：方正字体选项（\textbf{需要安装方正字体}），后台调用 \lstinline{ctex} 宏包并且使用 \lstinline{fontset=none} 选项，然后设置字体为方正四款免费字体，方正字体下载注意事项见后文，用户只需要安装方正字体即可使用该选项。
+%   \item \lstinline{nofont}：后台会调用 \lstinline{ctex} 宏包并且使用 \lstinline{fontset=none} 选项，不设定中文字体，用户可以自行设置中文字体，具体见后文。
+% \end{enumerate}
+
+% \subsubsection{方正字体选项}
+% 由于使用 \lstinline{ctex} 宏包默认调用系统已有的字体，部分系统字体缺失严重，因此，用户希望能够使用其它字体，我们推荐使用方正字体。方正的{\songti 方正书宋}、{\heiti 方正黑体}、{\kaishu 方正楷体}、{\fangsong 方正仿宋}四款字体均可免费试用，且可用于商业用途。用户可以自行从\href{http://www.foundertype.com/}{方正字体官网}下载此四款字体，在下载的时候请\textbf{务必}注意选择 GBK 字符集，也可以使用 \href{https://www.latexstudio.net/}{\LaTeX{} 工作室}提供的\href{https://pan.baidu.com/s/1BgbQM7LoinY7m8yeP25Y7Q}{方正字体，提取码为：njy9} 进行安装。安装时，{\kaishu Win 10 用户请右键选择为全部用户安装，否则会找不到字体。}
+
+% \begin{figure}[!htb]
+% \centering
+% \includegraphics[width=0.9\textwidth]{founder.png}
+% \end{figure}
+
+% \subsubsection{其他中文字体}
+% 如果你想完全自定义字体\footnote{这里仍然以方正字体为例。}，你可以选择 \lstinline{chinesefont=nofont}，然后在导言区设置即可，可以参考下方代码：
+% \begin{lstlisting}
+% \setCJKmainfont[BoldFont={FZHei-B01},ItalicFont={FZKai-Z03}]{FZShuSong-Z01}
+% \setCJKsansfont[BoldFont={FZHei-B01}]{FZKai-Z03}
+% \setCJKmonofont[BoldFont={FZHei-B01}]{FZFangSong-Z02}
+% \setCJKfamilyfont{zhsong}{FZShuSong-Z01}
+% \setCJKfamilyfont{zhhei}{FZHei-B01}
+% \setCJKfamilyfont{zhkai}[BoldFont={FZHei-B01}]{FZKai-Z03}
+% \setCJKfamilyfont{zhfs}[BoldFont={FZHei-B01}]{FZFangSong-Z02}
+% \newcommand*{\songti}{\CJKfamily{zhsong}}
+% \newcommand*{\heiti}{\CJKfamily{zhhei}}
+% \newcommand*{\kaishu}{\CJKfamily{zhkai}}
+% \newcommand*{\fangsong}{\CJKfamily{zhfs}}
+% \end{lstlisting}
+
+
+
+% \subsection{自定义命令}
+% 此模板并没有修改任何默认的 \LaTeX{} 命令或者环境\footnote{目的是保证代码的可复用性，请用户关注内容，不要太在意格式，这才是本工作论文模板的意义。}。另外，我自定义了 4 个命令：
+% \begin{enumerate}
+%   \item \lstinline{\email}：创建邮箱地址的链接，比如 \email{ddswhu@outlook.com}；
+%   \item \lstinline{\figref}：用法和 \lstinline{\ref} 类似，但是会在插图的标题前添加 <\textbf{图 n}> ；
+%   \item \lstinline{\tabref}：用法和 \lstinline{\ref} 类似，但是会在表格的标题前添加 <\textbf{表 n}>；
+%   \item \lstinline{\keywords}：为摘要环境添加关键词。
+% \end{enumerate}
+
+% \subsection{参考文献}
+
+% 文献部分，本模板调用了 biblatex 宏包，并提供了 biber（默认） 和 bibtex 两个后端选项，可以使用 \lstinline{bibend} 进行修改：
+
+% \begin{lstlisting}
+%   \documentclass[bibtex]{elegantpaper}
+%   \documentclass[bibend=bibtex]{elegantpaper}
+% \end{lstlisting}
+
+% 关于文献条目（bib item），你可以在谷歌学术，Mendeley，Endnote 中取，然后把它们添加到 \lstinline{reference.bib} 中。在文中引用的时候，引用它们的键值（bib key）即可。
+
+% 为了方便文献样式修改，模板引入了 \lstinline{bibstyle} 和 \lstinline{citestyle} 选项，默认均为数字格式（numeric），参考文献示例：\cite{cn1,en2,en3} 使用了中国一个大型的 P2P 平台（人人贷）的数据来检验男性投资者和女性投资者在投资表现上是否有显著差异。
+
+% 如果需要设置为国标 GB7714-2015，需要使用：
+% \begin{lstlisting}
+%   \documentclass[citestyle=gb7714-2015, bibstyle=gb7714-2015]{elegantpaper} 
+% \end{lstlisting}
+
+% 如果需要添加排序方式，可以在导言区加入
+% \begin{lstlisting}
+%   \ExecuteBibliographyOptions{sorting=ynt}
+% \end{lstlisting}
+
+% 启用国标之后，可以加入 \lstinline{sorting=gb7714-2015}。
+
+
+% \section{使用 newtx 系列字体}
+
+% 如果需要使用原先版本的 \lstinline{newtx} 系列字体，可以通过显示声明数学字体：
+
+% \begin{lstlisting}
+% \documentclass[math=newtx]{elegantpaper}
+% \end{lstlisting}
+
+% \subsection{连字符}
+
+% 如果使用 \lstinline{newtx} 系列字体宏包，需要注意下连字符的问题。
+% \begin{equation}
+%   \int_{R^q} f(x,y) dy.\emph{of\kern0pt f}
+% \end{equation}
+
+% \begin{lstlisting}
+% \begin{equation}
+%   \int_{R^q} f(x,y) dy.\emph{of \kern0pt f}
+% \end{equation}
+% \end{lstlisting}
+
+% \subsection{宏包冲突}
+
+% 有用户反馈模板在使用 \lstinline{yhmath} 以及 \lstinline{esvect} 等宏包时会报错：
+% \begin{lstlisting}
+% LaTeX Error:
+%    Too many symbol fonts declared.
+% \end{lstlisting}
+
+% 原因是在使用 \lstinline{newtxmath} 宏包时，重新定义了数学字体用于大型操作符，达到了 {\heiti 最多 16 个数学字体} 的上限，在调用其他宏包的时候，无法新增数学字体。为了减少调用非常用宏包，在此给出如何调用 \lstinline{yhmath} 以及 \lstinline{esvect} 宏包的方法。
+
+% 请在 \lstinline{elegantpaper.cls} 内搜索 \lstinline{yhmath} 或者 \lstinline{esvect}，将你所需要的宏包加载语句\textit{取消注释}即可。
+
+
+% \section{常见问题 FAQ}
+
+% \begin{enumerate}[label=\arabic*).]
+%   \item \textit{如何删除版本信息？}\\
+%     导言区不写 \lstinline|\version{x.xx}| 即可。
+%   \item \textit{如何删除日期？}\\
+%     需要注意的是，与版本 \lstinline{\version} 不同的是，导言区不写或注释 \lstinline{\date} 的话，仍然会打印出当日日期，原因是 \lstinline{\date} 有默认参数。如果不需要日期的话，日期可以留空即可，也即 \lstinline|\date{}|。
+%   \item \textit{如何获得中文日期？}\\
+%     为了获得中文日期，必须在中文模式下\footnote{英文模式下，由于未加载中文宏包，无法输入中文。}，使用 \lstinline|\date{\zhdate{2019/10/11}}|，如果需要当天的汉化日期，可以使用 \lstinline|\date{\zhtoday}|，这两个命令都来源于 \href{https://ctan.org/pkg/zhnumber}{\lstinline{zhnumber}} 宏包。
+%   \item \textit{如何添加多个作者？}\\
+%     在 \lstinline{\author} 里面使用 \lstinline{\and}，作者单位可以用 \lstinline{\\} 换行。
+%     \begin{lstlisting}
+%     \author{author 1\\ org. 1 \and author 2 \\ org. 2 }
+%     \end{lstlisting}
+%   \item \textit{如何添加中英文摘要？}\\
+%     请参考 \href{https://github.com/ElegantLaTeX/ElegantPaper/issues/5}{GitHub::ElegantPaper/issues/5}
+% \end{enumerate}
+
+
+% \section{致谢}
+
+% 特别感谢 \href{https://github.com/sikouhjw}{sikouhjw} 和 \href{https://github.com/syvshc}{syvshc}  长期以来对于 Github 上 issue 的快速回应，以及各个社区论坛对于 ElegantLaTeX 相关问题的回复。特别感谢 ChinaTeX 以及 \href{http://www.latexstudio.net/}{LaTeX 工作室} 对于本系列模板的大力宣传与推广。
+
+% 如果你喜欢我们的模板，你可以在 Github 上收藏我们的模板。
+
+% \nocite{*}
+% \printbibliography[heading=bibintoc, title=\ebibname]
+
+% \appendix
+% %\appendixpage
+% \addappheadtotoc
+
+\end{document}

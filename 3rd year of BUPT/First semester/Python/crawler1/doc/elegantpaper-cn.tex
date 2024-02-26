@@ -1,0 +1,468 @@
+%!TEX program = xelatex
+% 完整编译: xelatex -> biber/bibtex -> xelatex -> xelatex
+\documentclass[lang=cn,11pt,a4paper]{elegantpaper}
+
+\title{python中HTML页面编写和解析}
+\author{杨晨 \\学号2021212171}
+\institute{北京邮电大学 计算机学院}
+
+% \version{0.10}
+\date{\zhtoday}
+
+% 本文档命令
+\usepackage{array}
+\usepackage{xcolor}
+\newcommand{\ccr}[1]{\makecell{{\color{#1}\rule{1cm}{1cm}}}}
+
+% 设置全局代码样式
+\lstset{
+  language=Python, % 设置语言为Python
+  keywordstyle=\color{blue}, % 设置关键字颜色为蓝色
+  commentstyle=\color{green!60!black}, % 设置注释颜色为绿色
+  stringstyle=\color{orange}, % 设置字符串颜色为橙色
+  showstringspaces=false, % 不显示字符串中的空格
+  frame=single, % 添加边框
+  breaklines=true, % 自动断行
+  numberstyle=\tiny\color{gray}, % 设置行号样式为小号灰色
+  captionpos=b % 设置标题位置为底部
+}
+
+\lstdefinelanguage{text}{
+    showstringspaces=false,
+    breaklines=true,
+    breakatwhitespace=true,
+    tabsize=4
+}
+
+\begin{document}
+
+
+
+\maketitle
+% \tableofcontents
+
+\section{概述}
+
+\subsection{实验内容}
+
+\begin{enumerate}
+    \item 用基本的html标签，编写一页个人简介的html。要求有文字、链接、图片等。
+
+    \item 安装lxml库，并使用etree查找你编写的html中的不同元素。
+
+    \item 使用etree，查找并输出https://www.bupt.edu.cn/yxjg1.htm页面中的各个学院的名字和对应链接。
+\end{enumerate}
+
+\subsection{开发环境}
+
+\begin{itemize}
+    \item Windows10
+    \item PyCharm 2023.2.1
+\end{itemize}
+
+\section{实验过程}
+
+\subsection{个人简介HTML页面的编写}
+
+根据实验要求，使用HTML代码编写个人简介的HTML页面。
+
+\begin{lstlisting}[language=html]
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>个人简介</title>
+    <style>
+        body {
+            position: relative;
+            background-image: url("https://yangchen-1318434888.cos.ap-beijing.myqcloud.com/images%2FOHR.MoonlightRainier_ZH-CN6263832605_UHD.jpg");
+            background-size: cover;
+        }
+
+        body::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.5); /* 调整透明度值 */
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+<h1>个人简介</h1>
+<p>我是一个热爱编程的人，喜欢使用Python语言进行开发。</p>
+<p>以下是一些有关我的信息：</p>
+<ul>
+    <li>姓名：杨晨</li>
+    <li>年龄：20岁</li>
+    <li>邮箱：1369792882@bupt.edu.cn</li>
+</ul>
+<p>欢迎访问我的<a href="https://blog.yangchen-pro.com/">个人网站</a>。</p>
+</body>
+</html>
+
+\end{lstlisting}
+
+在上述代码中，我们保留了原有的HTML结构和内容，同时添加了一些样式。
+
+首先，我们在\lstinline[language=html]{<head>}标签中添加了一个\lstinline[language=html]{<style>}块，用于设置页面的背景样式。通过body选择器，我设置了页面的背景图片为我在腾讯云对象存储中，存储的一张图片，并将背景图片的大小调整为覆盖整个页面。
+
+然后，使用body::after伪元素为页面添加了一个半透明的遮罩层，以提高背景图片上文字的可读性。这里使用了rgba()函数来设置半透明的背景颜色，其中的最后一个参数控制透明度值。
+
+在\lstinline[language=html]{<body>}标签中，保留了原有的标题、段落、列表和链接等内容，没有进行修改。
+
+这样，就完成了个人简介HTML页面的编写，同时添加了背景样式来增强页面的美观性和可读性。
+
+\subsection{使用lxml库查找HTML中的元素}
+
+根据实验要求，安装了lxml库，并使用其etree模块来查找我编写的HTML中的不同元素。
+
+首先，从文件中读取HTML内容，并创建了一个HTML解析器。
+
+\begin{lstlisting}
+from lxml import etree
+
+# 读取HTML文件内容
+with open("homepage.html", "r", encoding="utf-8") as file:
+    html_string = file.read()
+
+# 创建HTML解析器
+parser = etree.HTMLParser()
+\end{lstlisting}
+
+接下来，使用解析器解析HTML文档，并得到一个解析树对象。
+
+\begin{lstlisting}
+# 解析HTML文档
+tree = etree.fromstring(html_string, parser)
+\end{lstlisting}
+
+然后，使用XPath表达式来查找不同的元素。在这里，使用了以下XPath表达式：
+\begin{itemize}
+    \item \lstinline{//h1}：查找所有\lstinline[language=html]{<h1>}元素
+    \item \lstinline{//p}：查找所有\lstinline[language=html]{<p>}元素
+    \item \lstinline{//ul}：查找所有\lstinline[language=html]{<ul>}元素
+    \item \lstinline{//li}：查找所有\lstinline[language=html]{<li>}元素
+    \item \lstinline{//a}：查找所有\lstinline[language=html]{<a>}元素
+\end{itemize}
+
+
+\begin{lstlisting}
+# 使用XPath查找元素
+h1_element = tree.xpath("//h1")[0]
+p_elements = tree.xpath("//p")
+ul_element = tree.xpath("//ul")[0]
+li_elements = tree.xpath("//li")
+a_element = tree.xpath("//a")[0]
+\end{lstlisting}
+
+最后，输出查找到的元素的文本内容或属性值。
+
+\begin{lstlisting}
+# 输出查找到的元素文本内容
+print("h1元素文本内容:", h1_element.text)
+print("p元素文本内容:")
+for p in p_elements:
+    print("  -", p.text)
+print("ul元素文本内容:")
+for li in li_elements:
+    print("  -", li.text)
+print("a元素链接地址:", a_element.attrib["href"])
+\end{lstlisting}
+
+输出结果如下
+\begin{lstlisting}[language=text]
+h1元素文本内容: 个人简介
+p元素文本内容:
+  - 我是一个热爱编程的人，喜欢使用Python语言进行开发。
+  - 以下是一些有关我的信息：
+  - 欢迎访问我的
+ul元素文本内容:
+  - 姓名：杨晨
+  - 年龄：20岁
+  - 邮箱：1369792882@bupt.edu.cn
+a元素链接地址: https://blog.yangchen-pro.com/
+\end{lstlisting}
+
+
+这样，使用lxml库的etree模块成功查找了自己编写的HTML中的不同元素，并输出了它们的文本内容或属性值。
+
+\subsection{查找并输出学院名称和链接}
+
+根据实验要求，使用lxml库的etree模块和requests库来获取并解析URL页面，然后使用XPath表达式查找学院的名称和链接。
+
+首先，使用requests库发送HTTP GET请求获取页面内容，并指定编码为UTF-8。
+
+\begin{lstlisting}
+from lxml import etree
+import requests
+
+# 发送HTTP GET请求获取页面内容，并指定编码为UTF-8
+url = "https://www.bupt.edu.cn/yxjg1.htm"
+response = requests.get(url)
+response.encoding = "utf-8"  # 指定编码为UTF-8
+html_string = response.text
+\end{lstlisting}
+
+接下来，将HTML字符串传递给etree.HTML()方法创建一个可解析的HTML树。
+
+\begin{lstlisting}
+# 将HTML字符串传递给etree.HTML()方法创建一个可解析的HTML树
+html_tree = etree.HTML(html_string)
+\end{lstlisting}
+
+然后，使用XPath表达式定位目标元素。根据查看HTML结构，可以通过以下XPath表达式定位到包含学院名称和链接的\lstinline[language=html]{<ul>}元素。
+
+\begin{lstlisting}
+# 使用XPath表达式定位目标元素
+ul_element = html_tree.xpath('//ul[@class="linkPageList"]/li[4]/div/ul')[0]
+\end{lstlisting}
+
+接下来，遍历目标\lstinline[language=html]{<ul>}元素下的子元素，并提取学院名称和链接。由于可能有多个\lstinline[language=html]{<a>}元素，使用循环进行提取。
+
+\begin{lstlisting}
+# 遍历目标 ul 元素下的子元素，提取内容
+for li_element in ul_element.xpath(".//li"):
+    # 提取院系名称和链接
+    a_elements = li_element.xpath(".//a")
+    department_name = []
+    department_link = []
+
+    # 可能有多个 <a>
+    for a_element in a_elements:
+        department_name.append(a_element.text.strip())
+        department_link.append(a_element.get("href"))
+
+    # 输出院系名称和链接
+    for i in range(len(department_name)):
+        print("院系名称:", department_name[i])
+        print("院系链接:", department_link[i])
+        print()
+\end{lstlisting}
+
+这样，成功使用lxml库的etree模块和requests库获取并解析了URL页面，并输出了学院的名称和链接。
+
+输出结果如下
+\begin{lstlisting}[language=text]
+院系名称: 信息与通信工程学院
+院系链接: https://sice.bupt.edu.cn/
+
+院系名称: 电子工程学院
+院系链接: https://see.bupt.edu.cn/
+
+院系名称: 计算机学院（国家示范性软件学院）
+院系链接: http://scs.bupt.edu.cn/
+
+院系名称: 网络空间安全学院
+院系链接: http://scss.bupt.edu.cn/
+
+院系名称: 人工智能学院
+院系链接: https://ai.bupt.edu.cn/
+
+院系名称: 现代邮政学院（自动化学院）
+院系链接: https://smp.bupt.edu.cn/
+
+院系名称: 集成电路学院
+院系链接: https://ic.bupt.edu.cn/
+
+院系名称: 经济管理学院
+院系链接: http://sem.bupt.edu.cn/
+
+院系名称: 理学院
+院系链接: https://science.bupt.edu.cn/
+
+院系名称: 未来学院
+院系链接: https://www.bupt.edu.cn/yxjg1.htm
+
+院系名称: 人文学院
+院系链接: http://sh.bupt.edu.cn/
+
+院系名称: 数字媒体与设计艺术学院
+院系链接: http://sdmda.bupt.edu.cn/
+
+院系名称: 马克思主义学院
+院系链接: http://mtri.bupt.edu.cn/
+
+院系名称: 国际学院
+院系链接: http://is.bupt.edu.cn/
+
+院系名称: 应急管理学院
+院系链接: #
+
+院系名称: 网络教育学院
+院系链接: http://www.buptnu.com.cn/
+
+院系名称: 继续教育学院
+院系链接: https://sce.bupt.edu.cn/
+
+院系名称: 玛丽女王海南学院
+院系链接: https://qmsh.bupt.edu.cn/
+
+院系名称: 体育部
+院系链接: http://ped.bupt.edu.cn/
+
+\end{lstlisting}
+
+
+
+% \subsection{全局选项}
+% 此模板定义了一个语言选项 \lstinline{lang}，可以选择英文模式 \lstinline{lang=en}（默认）或者中文模式 \lstinline{lang=cn}。当选择中文模式时，图表的标题引导词以及参考文献，定理引导词等信息会变成中文。你可以通过下面两种方式来选择语言模式：
+% \begin{lstlisting}
+% \documentclass[lang=cn]{elegantpaper} % or
+% \documentclass{cn}{elegantpaper} 
+% \end{lstlisting}
+
+% \textbf{注意：} 英文模式下，由于没有添加中文宏包，无法输入中文。如果需要输入中文，可以通过在导言区引入中文宏包 \lstinline{ctex} 或者加入 \lstinline{xeCJK} 宏包后自行设置字体。 
+% \begin{lstlisting}
+% \usepackage[UTF8,scheme=plain]{ctex}
+% \end{lstlisting}
+
+% \subsection{数学字体选项}
+
+% 本模板定义了一个数学字体选项（\lstinline{math}），可选项有三个：
+% \begin{enumerate}
+%   \item \lstinline{math=cm}（默认），使用 \LaTeX{} 默认数学字体（推荐，无需声明）；
+%   \item \lstinline{math=newtx}，使用 \lstinline{newtxmath} 设置数学字体（潜在问题比较多）。
+%   \item \lstinline{math=mtpro2}，使用 \lstinline{mtpro2} 宏包设置数学字体，要求用户已经成功安装此宏包。
+% \end{enumerate}
+
+% \subsection{中文字体选项}
+
+% 模板提供中文字体选项 \lstinline{chinesefont}，可选项有
+% \begin{enumerate}
+%   \item \lstinline{ctexfont}：默认选项，使用 \lstinline{ctex} 宏包根据系统自行选择字体，可能存在字体缺失的问题，更多内容参考 \lstinline{ctex} 宏包\href{https://ctan.org/pkg/ctex}{官方文档}\footnote{可以使用命令提示符，输入 \lstinline{texdoc ctex} 调出本地 \lstinline{ctex} 宏包文档}。
+%   \item \lstinline{founder}：方正字体选项（\textbf{需要安装方正字体}），后台调用 \lstinline{ctex} 宏包并且使用 \lstinline{fontset=none} 选项，然后设置字体为方正四款免费字体，方正字体下载注意事项见后文，用户只需要安装方正字体即可使用该选项。
+%   \item \lstinline{nofont}：后台会调用 \lstinline{ctex} 宏包并且使用 \lstinline{fontset=none} 选项，不设定中文字体，用户可以自行设置中文字体，具体见后文。
+% \end{enumerate}
+
+% \subsubsection{方正字体选项}
+% 由于使用 \lstinline{ctex} 宏包默认调用系统已有的字体，部分系统字体缺失严重，因此，用户希望能够使用其它字体，我们推荐使用方正字体。方正的{\songti 方正书宋}、{\heiti 方正黑体}、{\kaishu 方正楷体}、{\fangsong 方正仿宋}四款字体均可免费试用，且可用于商业用途。用户可以自行从\href{http://www.foundertype.com/}{方正字体官网}下载此四款字体，在下载的时候请\textbf{务必}注意选择 GBK 字符集，也可以使用 \href{https://www.latexstudio.net/}{\LaTeX{} 工作室}提供的\href{https://pan.baidu.com/s/1BgbQM7LoinY7m8yeP25Y7Q}{方正字体，提取码为：njy9} 进行安装。安装时，{\kaishu Win 10 用户请右键选择为全部用户安装，否则会找不到字体。}
+
+% \begin{figure}[!htb]
+% \centering
+% \includegraphics[width=0.9\textwidth]{founder.png}
+% \end{figure}
+
+% \subsubsection{其他中文字体}
+% 如果你想完全自定义字体\footnote{这里仍然以方正字体为例。}，你可以选择 \lstinline{chinesefont=nofont}，然后在导言区设置即可，可以参考下方代码：
+% \begin{lstlisting}
+% \setCJKmainfont[BoldFont={FZHei-B01},ItalicFont={FZKai-Z03}]{FZShuSong-Z01}
+% \setCJKsansfont[BoldFont={FZHei-B01}]{FZKai-Z03}
+% \setCJKmonofont[BoldFont={FZHei-B01}]{FZFangSong-Z02}
+% \setCJKfamilyfont{zhsong}{FZShuSong-Z01}
+% \setCJKfamilyfont{zhhei}{FZHei-B01}
+% \setCJKfamilyfont{zhkai}[BoldFont={FZHei-B01}]{FZKai-Z03}
+% \setCJKfamilyfont{zhfs}[BoldFont={FZHei-B01}]{FZFangSong-Z02}
+% \newcommand*{\songti}{\CJKfamily{zhsong}}
+% \newcommand*{\heiti}{\CJKfamily{zhhei}}
+% \newcommand*{\kaishu}{\CJKfamily{zhkai}}
+% \newcommand*{\fangsong}{\CJKfamily{zhfs}}
+% \end{lstlisting}
+
+
+
+% \subsection{自定义命令}
+% 此模板并没有修改任何默认的 \LaTeX{} 命令或者环境\footnote{目的是保证代码的可复用性，请用户关注内容，不要太在意格式，这才是本工作论文模板的意义。}。另外，我自定义了 4 个命令：
+% \begin{enumerate}
+%   \item \lstinline{\email}：创建邮箱地址的链接，比如 \email{ddswhu@outlook.com}；
+%   \item \lstinline{\figref}：用法和 \lstinline{\ref} 类似，但是会在插图的标题前添加 <\textbf{图 n}> ；
+%   \item \lstinline{\tabref}：用法和 \lstinline{\ref} 类似，但是会在表格的标题前添加 <\textbf{表 n}>；
+%   \item \lstinline{\keywords}：为摘要环境添加关键词。
+% \end{enumerate}
+
+% \subsection{参考文献}
+
+% 文献部分，本模板调用了 biblatex 宏包，并提供了 biber（默认） 和 bibtex 两个后端选项，可以使用 \lstinline{bibend} 进行修改：
+
+% \begin{lstlisting}
+%   \documentclass[bibtex]{elegantpaper}
+%   \documentclass[bibend=bibtex]{elegantpaper}
+% \end{lstlisting}
+
+% 关于文献条目（bib item），你可以在谷歌学术，Mendeley，Endnote 中取，然后把它们添加到 \lstinline{reference.bib} 中。在文中引用的时候，引用它们的键值（bib key）即可。
+
+% 为了方便文献样式修改，模板引入了 \lstinline{bibstyle} 和 \lstinline{citestyle} 选项，默认均为数字格式（numeric），参考文献示例：\cite{cn1,en2,en3} 使用了中国一个大型的 P2P 平台（人人贷）的数据来检验男性投资者和女性投资者在投资表现上是否有显著差异。
+
+% 如果需要设置为国标 GB7714-2015，需要使用：
+% \begin{lstlisting}
+%   \documentclass[citestyle=gb7714-2015, bibstyle=gb7714-2015]{elegantpaper} 
+% \end{lstlisting}
+
+% 如果需要添加排序方式，可以在导言区加入
+% \begin{lstlisting}
+%   \ExecuteBibliographyOptions{sorting=ynt}
+% \end{lstlisting}
+
+% 启用国标之后，可以加入 \lstinline{sorting=gb7714-2015}。
+
+
+% \section{使用 newtx 系列字体}
+
+% 如果需要使用原先版本的 \lstinline{newtx} 系列字体，可以通过显示声明数学字体：
+
+% \begin{lstlisting}
+% \documentclass[math=newtx]{elegantpaper}
+% \end{lstlisting}
+
+% \subsection{连字符}
+
+% 如果使用 \lstinline{newtx} 系列字体宏包，需要注意下连字符的问题。
+% \begin{equation}
+%   \int_{R^q} f(x,y) dy.\emph{of\kern0pt f}
+% \end{equation}
+
+% \begin{lstlisting}
+% \begin{equation}
+%   \int_{R^q} f(x,y) dy.\emph{of \kern0pt f}
+% \end{equation}
+% \end{lstlisting}
+
+% \subsection{宏包冲突}
+
+% 有用户反馈模板在使用 \lstinline{yhmath} 以及 \lstinline{esvect} 等宏包时会报错：
+% \begin{lstlisting}
+% LaTeX Error:
+%    Too many symbol fonts declared.
+% \end{lstlisting}
+
+% 原因是在使用 \lstinline{newtxmath} 宏包时，重新定义了数学字体用于大型操作符，达到了 {\heiti 最多 16 个数学字体} 的上限，在调用其他宏包的时候，无法新增数学字体。为了减少调用非常用宏包，在此给出如何调用 \lstinline{yhmath} 以及 \lstinline{esvect} 宏包的方法。
+
+% 请在 \lstinline{elegantpaper.cls} 内搜索 \lstinline{yhmath} 或者 \lstinline{esvect}，将你所需要的宏包加载语句\textit{取消注释}即可。
+
+
+% \section{常见问题 FAQ}
+
+% \begin{enumerate}[label=\arabic*).]
+%   \item \textit{如何删除版本信息？}\\
+%     导言区不写 \lstinline|\version{x.xx}| 即可。
+%   \item \textit{如何删除日期？}\\
+%     需要注意的是，与版本 \lstinline{\version} 不同的是，导言区不写或注释 \lstinline{\date} 的话，仍然会打印出当日日期，原因是 \lstinline{\date} 有默认参数。如果不需要日期的话，日期可以留空即可，也即 \lstinline|\date{}|。
+%   \item \textit{如何获得中文日期？}\\
+%     为了获得中文日期，必须在中文模式下\footnote{英文模式下，由于未加载中文宏包，无法输入中文。}，使用 \lstinline|\date{\zhdate{2019/10/11}}|，如果需要当天的汉化日期，可以使用 \lstinline|\date{\zhtoday}|，这两个命令都来源于 \href{https://ctan.org/pkg/zhnumber}{\lstinline{zhnumber}} 宏包。
+%   \item \textit{如何添加多个作者？}\\
+%     在 \lstinline{\author} 里面使用 \lstinline{\and}，作者单位可以用 \lstinline{\\} 换行。
+%     \begin{lstlisting}
+%     \author{author 1\\ org. 1 \and author 2 \\ org. 2 }
+%     \end{lstlisting}
+%   \item \textit{如何添加中英文摘要？}\\
+%     请参考 \href{https://github.com/ElegantLaTeX/ElegantPaper/issues/5}{GitHub::ElegantPaper/issues/5}
+% \end{enumerate}
+
+
+% \section{致谢}
+
+% 特别感谢 \href{https://github.com/sikouhjw}{sikouhjw} 和 \href{https://github.com/syvshc}{syvshc}  长期以来对于 Github 上 issue 的快速回应，以及各个社区论坛对于 ElegantLaTeX 相关问题的回复。特别感谢 ChinaTeX 以及 \href{http://www.latexstudio.net/}{LaTeX 工作室} 对于本系列模板的大力宣传与推广。
+
+% 如果你喜欢我们的模板，你可以在 Github 上收藏我们的模板。
+
+% \nocite{*}
+% \printbibliography[heading=bibintoc, title=\ebibname]
+
+% \appendix
+% %\appendixpage
+% \addappheadtotoc
+
+\end{document}
