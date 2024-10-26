@@ -1,0 +1,249 @@
+body {
+    font-family: Microsoft YaHei;
+    background-color: #EEF5F9;
+}
+
+h2 {
+    color: #a172a1;
+    font-weight: bold;
+}
+
+button {
+    width: 80px;
+    height: 50px;
+}
+
+#container { /*容器*/
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    padding: 30px;
+}
+
+#table { /*面板*/
+    background-color: #fff;
+    height: 500px;
+    width: 500px;
+    border: 2px solid #a172a1;
+    border-radius: 20px;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
+}
+
+#head { /*头部*/
+    width: 550px;
+    height: 80px;
+    border-radius: 20px 20px 0px 0px;
+    border-bottom: solid 2px #a172a1;
+    justify-content: center;
+    text-align: center;
+}
+
+#screen { /*显示屏*/
+    width: 390px;
+    height: auto;
+    margin-bottom: 20px;
+    margin-left: 20px;
+    margin-top: 20px;
+    background-color: #cbc8c8;
+    border-radius: 20px;
+    padding: 8px;
+    box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.2) inset;
+    border: 1px solid #778899;
+}
+
+#time {
+    height: 50px;
+}
+
+#temperature_box {
+    height: auto;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-bottom: solid 2px black;
+}
+
+#temperature_box_unit {
+    margin-left: 5px;
+    margin-right: 5px;
+    display: flex;
+    flex-direction: column;
+}
+
+#info_box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#info_box_unit {
+    margin-right: 40px;
+    margin-left: 40px;
+}
+
+#const_set {
+    width: auto;
+    height: auto;
+    text-align: center;
+}
+
+#temperature {
+    width: 185px;
+    height: auto;
+    font-size: 60px;
+
+}
+
+#temperature_2 {
+    width: 185px;
+    height: auto;
+    font-size: 60px;
+
+}
+
+#outdoor_tmp { /*室外温度*/
+    width: auto;
+    height: auto;
+}
+
+#indoor_tmp {
+    width: auto;
+    height: auto;
+    text-align: center;
+}
+
+#wind_speed_box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: solid 2px black;
+    padding-bottom: 10px;
+}
+
+
+#wind_speed {
+    margin-right: auto;
+    margin-left: 80px;
+    margin-right: 80px;
+}
+
+#mode {
+
+}
+
+#fee {
+
+}
+
+#wind_control { /*空调控制 两个按钮*/
+    width: 80px;
+    padding: 0px;
+
+}
+
+#main_control { /*常用控制 五个按钮*/
+    /*width:500px;*/
+    /*padding:10px;*/
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+
+#btn_high {
+    width: 100px;
+    height: 50px;
+    border-radius: 20px;
+    margin-right: 50px;
+    border: solid 2px #a172a1;
+    color: #a172a1;
+    background: url("img/空调-风速-大.png") 8px 8px no-repeat;
+    background-size: 30%;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
+}
+
+#btn_mid {
+    width: 100px;
+    height: 50px;;
+    border-radius: 20px;
+    margin-right: 50px;
+    border: solid 2px #a172a1;
+    color: #a172a1;
+    background: url("img/空调-风速-中.png") 8px 10px no-repeat;
+    background-size: 30%;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
+}
+
+#btn_low {
+    width: 100px;
+    height: 50px;
+    border-radius: 20px;
+    border: solid 2px #a172a1;
+    color: #a172a1;
+    background: url("img/空调-风速-小.png") 8px 10px no-repeat;
+    background-size: 30%;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
+}
+
+#btn_mode {
+    width: 100px;
+    height: 50px;
+    border-radius: 20px;
+    margin-right: 100px;
+    border: solid 2px #a172a1;
+    color: #a172a1;
+    background-color: white;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
+}
+
+#btn_save {
+    width: 100px;
+    height: 50px;
+    border-radius: 20px;
+    border: solid 2px #a172a1;
+    color: #a172a1;
+    background-color: white;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
+}
+
+#btn_up {
+    margin-bottom: 30px;
+    margin-left: 40px;
+    font-size: 40px;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: solid 0px;
+    background: url("img/up.png") no-repeat;
+    background-size: cover;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
+}
+
+#btn_down {
+    margin-bottom: 30px;
+    margin-left: 40px;
+    font-size: 40px;
+    width: 55px;
+    height: 55px;
+    border-radius: 50%;
+    border: solid 0px;
+    background: url("img/down.png") no-repeat;
+    background-size: cover;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
+}
+
+#btn_power {
+    margin-left: 35px;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: solid 0px;
+    background: url("img/开关.png") no-repeat;
+    background-size: cover;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
+}

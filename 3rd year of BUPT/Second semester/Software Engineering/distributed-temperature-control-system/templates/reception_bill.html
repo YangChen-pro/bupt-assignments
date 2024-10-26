@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>bill_print</title>
+     <link rel="stylesheet" href="/static/css/receptitionist.css">
+</head>
+<body>
+    <div class="top-bar">
+        账单
+    </div>
+    <div class="info-container">
+
+        {% if request.session.info_dict %}
+        <ul class="info-list">
+            <li><strong>开具人</strong>：<span>前台管理员</span></li>
+            <li><strong>单位</strong>：<span>魔法小贝主题酒店</span></li>
+            {% for key, value in request.session.info_dict.items %}
+            <li>
+                <strong>{{ key }}</strong><span>: {{ value }}</span>
+            </li>
+            {% endfor %}
+
+        </ul>
+        {% endif %}
+        <form action="/recp_return" method="get">
+        <input type="submit" class="button" value="返回">
+     </form>
+    </div>
+
+</body>
+</html>

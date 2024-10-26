@@ -1,0 +1,103 @@
+
+body {
+    background-color: #EEF5F9;
+    /*background-image: url(images/background.jpg);*/
+    background-repeat: no-repeat;
+    background-size: cover;
+/ / 背景图适应屏幕
+
+}
+
+.login_box {
+    width: 400px;
+    height: 400px;
+    background-color: #fff;
+    margin: auto;
+    margin-top: 150px;
+    border-radius: 20px;
+    border: solid 3px #a172a1;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+.title {
+    text-align: center;
+    font-size: 28px;
+    color: #b999b9;
+    margin-top: 80px;
+    margin-bottom: 10px;
+    letter-spacing: 3px;
+    font-family: sans-serif;
+}
+
+.input_box {
+    width: 300px;
+    height: 40px;
+    padding-left: 10px;
+    margin-top: 20px;
+    margin-left: 40px;
+    border-radius: 20px;
+    border: solid 1px black;
+}
+
+.logo_box {
+    position: absolute;
+    background-color: #fff;
+    width: 100px;
+    height: 100px;
+    border-radius: 100px;
+    top: 100px;
+    left: 46%;
+    border: solid 3px #a172a1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.logo_img {
+    width: 50px;
+    height: 50px;
+    background: url("img/登录.png") no-repeat;
+    background-size: cover;
+    border: solid 0px;
+}
+
+#shiny-shadow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+    background: #fff;
+}
+
+button {
+    margin-top: 20px;
+    border: 2px solid #a172a1;
+    background: transparent;
+    text-transform: uppercase;
+    color: #a172a1;
+    padding: 15px 50px;
+    outline: none;
+    overflow: hidden;
+    position: relative;
+    border-radius: 20px;
+}
+
+button:after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: -36px;
+    left: -100px;
+    background: #a172a1;
+    width: 50px;
+    height: 125px;
+    opacity: 20%;
+    transform: rotate(-45deg);
+}
+
+button:hover:after {
+    left: 120%;
+    transition: all 600ms cubic-bezier(0.3, 1, 0.2, 1);
+    -webkit-transition: all 600ms cubic-bezier(0.3, 1, 0.2, 1);
+}

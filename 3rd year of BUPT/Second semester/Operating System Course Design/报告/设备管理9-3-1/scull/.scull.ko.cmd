@@ -1,0 +1,1 @@
+cmd_/root/os_exec/os-expr-rhel6_x64/DeviceManagement/scull/scull.ko := cp /root/os_exec/os-expr-rhel6_x64/DeviceManagement/scull/scull.ko.unsigned /root/os_exec/os-expr-rhel6_x64/DeviceManagement/scull/scull.ko

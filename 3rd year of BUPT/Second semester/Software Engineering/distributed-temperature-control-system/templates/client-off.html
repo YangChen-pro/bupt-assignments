@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Client-UI</title>
+    <link rel="stylesheet" href="/static/css/my-client.css">
+
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js">
+    </script>
+    <script>
+        //==================================================
+        $(document).ready(function () {
+            //每秒自动更新时间
+            setInterval(function () {
+                var myDate = new Date();
+                var year = myDate.getFullYear();
+                var month = myDate.getMonth() + 1;
+                var day = myDate.getDate();
+                var weekday = myDate.getDay();
+                var weekdayCh = new Array("日", "一", "二", "三", "四", "五", "六");
+                var hours = myDate.getHours();
+                var minutes = myDate.getMinutes();
+                var seconds = myDate.getSeconds();
+                if (day < 10) {
+                    day = "0" + day;
+                }
+                if (hours < 10) {
+                    hours = "0" + hours;
+                }
+                if (minutes < 10) {
+                    minutes = "0" + minutes;
+                }
+                if (seconds < 10) {
+                    seconds = "0" + seconds;
+                }
+                $("#time").text(year + "年" + month + "月" + day + "日\t星期" + weekdayCh[weekday] + "\t" + hours + ":" + minutes + ":" + seconds);
+            }, 1000);
+
+        })//最后一个括号
+
+
+    </script>
+
+</head>
+
+
+<body>
+<div id="container">
+    <div id="table" style="width: auto;height: 580px">
+        <table>
+            <tr>
+                <td colspan="3" id="head">
+                    <h2>空调控制面板</h2>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2" style="display: flex;align-items: center;">
+                    <div id="screen">
+                        <div id="room_id">房间号：{{ room_id }}</div>
+
+                        <div id="time">年月日 星期 --:--:--</div>
+                        <div id="wind_speed_box">
+                            <span id="wind_speed">风速&emsp;</span>
+                            <span id="wind_speed">--</span>
+                        </div>
+                        <div id="temperature_box">
+                            <div id="temperature_box_unit">
+                                <span id="const_set">设定温度</span>
+                                <span id="temperature">--℃</span>
+                            </div>
+                            <div id="temperature_box_unit">
+                                <span id="indoor_tmp">室内温度</span>
+                                <span id="temperature_2">{{ current_temp }}℃</span>
+                            </div>
+                        </div>
+                        <table>
+                            <tr id="info_box">
+                                <td id="info_box_unit">
+                                    <span>模式：</span>
+                                    <span>--</span>
+                                </td>
+                                <td id="info_box_unit">
+                                    <span id="outdoor_tmp">室外温度：{{ init_temp }}℃</span>
+                                    <div id="fee">费用：￥{{ fee }}</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div id="wind_control">
+                        <form action="/up" method="get">
+                            <input id="btn_up" type="submit" value=""></input>
+                        </form>
+                        <form action="/down" method="get">
+                            <input id="btn_down" type="submit" value=""></input>
+                        </form>
+                        <form action="/power" method="get">
+                            <!--form action="/mid" method="get"-->
+                            <input id="btn_power" type="submit" value="">
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <div id="main_control">
+                        <form action="/high" method="get">
+                            <input id="btn_high" type="submit" value="&emsp;&emsp;高">
+                        </form>
+                        <form action="/mid" method="get">
+                            <input id="btn_mid" type="submit" value="&emsp;&emsp;中">
+                        </form>
+                        <form action="/low" method="get">
+                            <input id="btn_low" type="submit" value="&emsp;&emsp;低">
+                        </form>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div><!-- end of table -->
+</div>
+</body>
+</html>

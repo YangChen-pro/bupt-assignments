@@ -1,0 +1,146 @@
+/* 全局样式重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* 顶部横条样式 */
+.top-bar {
+    background-color: #a172a1; /* 横条的背景颜色 */
+    color: white; /* 文字颜色 */
+    text-align: center; /* 文字居中 */
+    height: 60px; /* 设置横条的高度 */
+    line-height: 60px; /* 设置行高与高度一致，使文字垂直居中 */
+    padding: 0 20px; /* 横条左右内边距 */
+    position: fixed; /* 固定定位，使横条始终显示在页面顶端 */
+    width: 100%; /* 横条宽度 */
+    top: 0; /* 横条位于页面顶部 */
+    left: 0; /* 横条从左边开始 */
+    z-index: 1000; /* 确保横条在页面内容的上方 */
+    display: flex; /* 使用Flexbox布局 */
+    justify-content: center; /* 水平居中文本 */
+    align-items: center; /* 垂直居中文本 */
+    font-size: 25px; /* 设置文字大小为18像素，根据需要调整 */
+}
+
+/* 页面的其余样式 */
+body {
+    padding-top: 80px; /* 为页面内容添加上边距，避免被顶部横条覆盖 */
+}
+
+h3 {
+    color: #a172a1;
+    font-weight: bold;
+    padding-left: 110px;
+}
+.custom-label {
+    color: #a172a1; /* 你希望的颜色 */
+    font-size: 18px; /* 设置字号为18像素，你可以根据需要调整这个值 */
+}
+.container {
+    display: flex;
+    flex-direction: column; /* 垂直排列子元素 */
+    align-items: center; /* 水平居中子元素 */
+
+}
+.button {
+    width: 100px;
+    height: 50px;;
+    border-radius: 20px;
+    background-color: white;
+    color: #a172a1;
+    border: solid 2px #a172a1;
+    border-radius: 20px;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s ease;
+    margin-top:40px;
+}
+.button-container {
+    display: flex;          /* 使用Flexbox布局 */
+    justify-content: center;/* 水平居中 */
+    align-items: center;    /* 垂直居中 */
+    height: 100vh;          /* 容器高度设为视口高度 */
+}
+.button_2 {
+    width: 100px;
+    height: 50px;;
+    border-radius: 20px;
+    background-color: white;
+    color: #a172a1;
+    border: solid 2px #a172a1;
+    border-radius: 20px;
+    box-shadow: 3px 3px 3px rgba(0, 0, 0, 0.25);
+    transition: all 0.3s ease;
+    margin: 5px;
+    margin-left: 0px;
+
+}
+.button:hover {
+    background-color: #a172a1;
+    color: white;
+}
+.button_2:hover {
+    background-color: #a172a1;
+    color: white;
+}
+.info-list {
+            list-style-type: none; /* 移除列表项的默认样式 */
+            padding: 0;
+            margin-top: 20px; /* 添加上边距 */
+        }
+        .info-list li {
+            margin-bottom: 16px; /* 列表项之间的间隔 */
+            border: none; /* 去掉边框 */
+            background-color: transparent; /* 背景颜色透明 */
+            padding: 0; /* 移除内边距 */
+        }
+        .info-list li > strong {
+            color: #a172a1; /* 键的颜色设置为紫色 */
+            font-weight: bold; /* 加粗 */
+            font-size: 25px;
+        }
+        .info-list li > span {
+            color: black; /* 值的颜色设置为黑色 */
+            font-weight: normal; /* 正常字重 */
+            font-size: 25px;
+        }
+
+/* 表格容器样式 */
+.info-container {
+    text-align: center;
+}
+
+/* 表格样式 */
+.info-table {
+    width: 60%;
+    border-collapse: collapse;
+    background-color: #f5f0ff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 0 auto;
+}
+
+/* 表头样式 */
+.info-table thead {
+    background-color: #a172a1;
+    color: white;
+
+}
+
+/* 单元格样式 */
+.info-table th,
+.info-table td {
+    padding: 10px;
+    border: 1px solid #d8b3ff;
+    text-align: center;
+}
+
+/* 偶数行样式 */
+.info-table tbody tr:nth-child(even) {
+    background-color: #e6d8f3;
+}
+
+/* 鼠标悬浮行样式 */
+.info-table tbody tr:hover {
+    background-color: #E6E6FA;
+}

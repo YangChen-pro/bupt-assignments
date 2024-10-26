@@ -1,0 +1,7 @@
+room1 123   1
+room2 123   1
+room3 123   1
+room4 123   1
+room5 123   1
+qiantai 123 2
+admin 123   3

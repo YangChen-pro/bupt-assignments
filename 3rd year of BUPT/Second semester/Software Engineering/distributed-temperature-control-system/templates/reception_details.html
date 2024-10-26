@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>detail_print</title>
+    <link rel="stylesheet" href="/static/css/receptitionist.css">
+</head>
+<body>
+    <div class="top-bar">
+        详单
+    </div>
+    <div>
+<div class="info-container">
+    <table class="info-table" border="1">
+        <thead>
+            <tr>
+                <th>请求ID</th>
+                <th>请求时间</th>
+                <th>房间ID</th>
+                <th>操作</th>
+                <th>当前温度</th>
+                <th>目标温度</th>
+                <th>风速</th>
+                <th>费用</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- 循环遍历 response 中的每个字典 -->
+            {% for item in  request.session.info_dict %}
+            <tr>
+                <td>{{ item.请求ID }}</td>
+                <td>{{ item.请求时间 }}</td>
+                <td>{{ item.房间ID }}</td>
+                <td>{{ item.操作 }}</td>
+                <td>{{ item.当前温度 }}</td>
+                <td>{{ item.目标温度 }}</td>
+                <td>{{ item.风速 }}</td>
+                <td>{{ item.费用 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <form action="/recp_return" method="get">
+        <input type="submit" class="button" value="返回">
+    </form>
+</div>
+
+
+    </div>
+</body>
+</html>
+
