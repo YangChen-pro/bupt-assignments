@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE Diagram SYSTEM "rtdsDiagram.dtd">
+
+<Diagram language="sdl" type="sys" defaultColorsNeedFixing="FALSE" name="Phone" showMsgData="full" linksCrossingAllowed="FALSE" cellWidthMm="4">
+
+<DiagramPartition name="Part. 0" nbPagesH="1" nbPagesV="1">
+<PageSpecification pageWidth="21.0" pageHeight="29.7" topMargin="0.0" bottomMargin="0.0" leftMargin="0.0" rightMargin="0.0" pageFooter="FALSE" scaleFactor="1.0"/>
+
+<Symbol symbolId="SYMB1" type="sdlSysDgmFrm" xCenter="297" yCenter="420" fixedDimensions="TRUE" width="551" height="775" color="-" fillColor="-">
+<Description></Description>
+<Text></Text>
+
+<Symbol symbolId="SYMB4" type="sdlText" xCenter="275" yCenter="77" fixedDimensions="FALSE" width="550" height="110" color="#000000" fillColor="#FFFFFF">
+<Description></Description>
+<Text>signal callout_ch(Char),pickup,hangout,backring,stop_backring,
+busyring,stop_busyring,ring,stop_ring,display(CharString),
+callout_str(CharString),on_hook(CharString),off_hook(CharString),
+callout_success,callout_failed(CharString),be_accepted,callin(CharString),
+release;</Text>
+</Symbol>
+
+<Symbol symbolId="SYMB5" type="sdlBlk" xCenter="286" yCenter="242" fixedDimensions="FALSE" width="88" height="44" color="#000000" fillColor="#C4EFED">
+<Description></Description>
+<Text>base_blk
+</Text>
+</Symbol>
+
+<Symbol symbolId="SYMB7" type="sdlBlk" xCenter="286" yCenter="495" fixedDimensions="FALSE" width="110" height="44" color="#000000" fillColor="#C4EFED">
+<Description></Description>
+<Text>subsys_blk
+</Text>
+</Symbol>
+</Symbol>
+
+<Link linkId="LINK3" type="chnl" textSegmentNum="0" color="#000000" reverseRead="FALSE" oriented="TRUE">
+<Text>userside</Text>
+<Connector attachedSymbolId="SYMB1" type="chnl" isOutside="FALSE" side="w" position="0.278709677419" endType="midarrow">
+<Text id="1">[backring,
+stop_backring,
+busyring,
+stop_busyring,
+ring,
+stop_ring,
+display]
+</Text>
+<Text id="2"></Text>
+</Connector>
+<Connector attachedSymbolId="SYMB7" type="chnl" isOutside="TRUE" side="y" position="0.0" endType="midarrow">
+<Text id="1">[callout_ch,
+pickup,
+hangout]
+</Text>
+<Text id="2"></Text>
+</Connector>
+<LinkSegment orientation="h" length="286"/>
+
+</Link>
+
+<Link linkId="LINK2" type="chnl" textSegmentNum="0" color="#000000" reverseRead="FALSE" oriented="TRUE">
+<Text>sysside</Text>
+<Connector attachedSymbolId="SYMB5" type="chnl" isOutside="TRUE" side="x" position="0.0" endType="midarrow">
+<Text id="1">[callout_str,on_hook,off_hook]
+</Text>
+<Text id="2"></Text>
+</Connector>
+<Connector attachedSymbolId="SYMB7" type="chnl" isOutside="TRUE" side="x" position="0.0" endType="midarrow">
+<Text id="1">[callout_success,callout_failed,
+be_accepted,callin,release]
+</Text>
+<Text id="2"></Text>
+</Connector>
+<LinkSegment orientation="v" length="253"/>
+
+</Link>
+</DiagramPartition>
+
+</Diagram>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE Diagram SYSTEM "rtdsDiagram.dtd">
+
+<MscDiagram message_params_visibility="full">
+<LifelineOrdering identifiers="_SYMBOL_0:left _LIFELINE_0 _LIFELINE_1 _LIFELINE_5 _LIFELINE_7 _LIFELINE_8 _LIFELINE_4 _LIFELINE_11 _SYMBOL_0:right"/>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_0" event_type="PROCESS_START" color="-" text="主叫
+" text_size="22 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="PROCESS_START" color="-" text="键盘
+" text_size="22 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_5" event_type="PROCESS_START" color="-" text="显示器
+" text_size="29 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="PROCESS_START" color="-" text="扬声器
+" text_size="29 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_8" event_type="PROCESS_START" color="-" text="硬件系统的控制软件
+" text_size="71 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_4" event_type="PROCESS_START" color="-" text="基站
+" text_size="22 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_11" event_type="PROCESS_START" color="-" text="被叫
+" text_size="22 -" background="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1 _LIFELINE_4 _LIFELINE_11 _LIFELINE_0" event_type="MSC_REFERENCE_START" color="-" text="呼出成功，主叫挂机
+" identifier="_SYMBOL_0" background="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent event_type="MSC_REFERENCE_END" color="-" text="呼出成功，主叫挂机
+" identifier="_SYMBOL_0"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_0" event_type="MESSAGE_SEND" color="#000000" text="按拨号键&quot;123&quot;
+" identifier="_LINK_57"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_RECEIVE" color="#000000" text="按拨号键&quot;123&quot;
+" identifier="_LINK_57"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_SEND" color="#000000" text="显示&quot;123&quot;
+" identifier="_LINK_5"/>
+<MscEvent lifeline_ids="_LIFELINE_5" event_type="MESSAGE_RECEIVE" color="#000000" text="显示&quot;123&quot;
+" identifier="_LINK_5"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_0" event_type="MESSAGE_SEND" color="#000000" text="摘机
+" identifier="_LINK_14"/>
+<MscEvent lifeline_ids="_LIFELINE_8" event_type="MESSAGE_RECEIVE" color="#000000" text="摘机
+" identifier="_LINK_14"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_8" event_type="MESSAGE_SEND" color="#000000" text="显示&quot;正在呼出&quot;
+" identifier="_LINK_17"/>
+<MscEvent lifeline_ids="_LIFELINE_5" event_type="MESSAGE_RECEIVE" color="#000000" text="显示&quot;正在呼出&quot;
+" identifier="_LINK_17"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_8" event_type="MESSAGE_SEND" color="#000000" text="呼出&quot;123&quot;
+" identifier="_LINK_20"/>
+<MscEvent lifeline_ids="_LIFELINE_4" event_type="MESSAGE_RECEIVE" color="#000000" text="呼出&quot;123&quot;
+" identifier="_LINK_20"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_4" event_type="MESSAGE_SEND" color="#000000" text="呼出&quot;123&quot;
+" identifier="_LINK_117"/>
+<MscEvent lifeline_ids="_LIFELINE_11" event_type="MESSAGE_RECEIVE" color="#000000" text="呼出&quot;123&quot;
+" identifier="_LINK_117"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_4 _LIFELINE_8" event_type="OPERATION_RETURN" color="#000000" text="呼出成功
+" identifier="_LINK_23"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_8" event_type="MESSAGE_SEND" color="#000000" text="播放回铃音
+" identifier="_LINK_26"/>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="MESSAGE_RECEIVE" color="#000000" text="播放回铃音
+" identifier="_LINK_26"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="SEGMENT_START" color="black" identifier="_LIFELINE_7/0" type="METHOD_SEGMENT"/>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="SEGMENT_END" color="black" identifier="_LIFELINE_7/0"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_0" event_type="MESSAGE_SEND" color="#000000" text="主叫挂机
+" identifier="_LINK_38"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_RECEIVE" color="#000000" text="主叫挂机
+" identifier="_LINK_38"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_8" event_type="MESSAGE_SEND" color="#000000" text="挂机，本机号码
+" identifier="_LINK_41"/>
+<MscEvent lifeline_ids="_LIFELINE_4" event_type="MESSAGE_RECEIVE" color="#000000" text="挂机，本机号码
+" identifier="_LINK_41"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_4" event_type="MESSAGE_SEND" color="#000000" text="挂机
+" identifier="_LINK_128"/>
+<MscEvent lifeline_ids="_LIFELINE_11" event_type="MESSAGE_RECEIVE" color="#000000" text="挂机
+" identifier="_LINK_128"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<PageSpecification pageWidth="21.0" pageHeight="29.7" topMargin="0.0" bottomMargin="0.0" leftMargin="0.0" rightMargin="0.0" pageFooter="FALSE" scaleFactor="1.0"/>
+</MscDiagram>

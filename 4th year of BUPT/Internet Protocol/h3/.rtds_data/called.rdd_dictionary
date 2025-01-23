@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE DictionaryObjects SYSTEM "rtdsDictionaryObjects.dtd">
+
+<DictionaryObjects version="10330" language="sdl" diagramType="prcs">
+<Signal id="SIG1" name="callin">
+<UsingSymbols>
+<SymbolReference symbolId="SYM4" usingKind="input"/>
+</UsingSymbols>
+</Signal>
+<Signal id="SIG2" name="ring">
+<UsingSymbols>
+<SymbolReference symbolId="SYM5" usingKind="output"/>
+</UsingSymbols>
+</Signal>
+<Signal id="SIG3" name="display">
+<UsingSymbols>
+<SymbolReference symbolId="SYM13" usingKind="output"/>
+<SymbolReference symbolId="SYM6" usingKind="output"/>
+</UsingSymbols>
+</Signal>
+<Signal id="SIG4" name="pickup">
+<UsingSymbols>
+<SymbolReference symbolId="SYM18" usingKind="output"/>
+<SymbolReference symbolId="SYM10" usingKind="input"/>
+</UsingSymbols>
+</Signal>
+<Signal id="SIG5" name="stop_zhenring">
+<UsingSymbols>
+<SymbolReference symbolId="SYM12" usingKind="output"/>
+</UsingSymbols>
+</Signal>
+<Signal id="SIG6" name="T1">
+<UsingSymbols>
+<SymbolReference symbolId="SYM11" usingKind="input"/>
+</UsingSymbols>
+</Signal>
+<Signal id="SIG7" name="hangout">
+<UsingSymbols>
+<SymbolReference symbolId="SYM22" usingKind="output"/>
+<SymbolReference symbolId="SYM15" usingKind="output"/>
+<SymbolReference symbolId="SYM21" usingKind="input"/>
+</UsingSymbols>
+</Signal>
+<Signal id="SIG8" name="stop_ring">
+<UsingSymbols>
+<SymbolReference symbolId="SYM16" usingKind="output"/>
+</UsingSymbols>
+</Signal>
+<Signal id="SIG9" name="release">
+<UsingSymbols>
+<SymbolReference symbolId="SYM24" usingKind="input"/>
+</UsingSymbols>
+</Signal>
+<Item id="ITEM1" type="process" name="called_proc" scope="current" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<Body>
+<SentSignals>
+<SignalReference id="SIG3"/>
+<SignalReference id="SIG2"/>
+<SignalReference id="SIG4"/>
+<SignalReference id="SIG5"/>
+<SignalReference id="SIG7"/>
+<SignalReference id="SIG8"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG1"/>
+<SignalReference id="SIG4"/>
+<SignalReference id="SIG6"/>
+<SignalReference id="SIG9"/>
+<SignalReference id="SIG7"/>
+</ReceivedSignals>
+</Body>
+</Item>
+<Item id="ITEM2" type="state" name="idle" parentId="ITEM1" scope="none" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<DefiningSymbols>
+<SymbolReference symbolId="SYM3"/>
+</DefiningSymbols>
+<UsingSymbols>
+<SymbolReference symbolId="SYM17"/>
+<SymbolReference symbolId="SYM2"/>
+<SymbolReference symbolId="SYM25"/>
+<SymbolReference symbolId="SYM23"/>
+</UsingSymbols>
+</Item>
+<Item id="ITEM3" type="state" name="wait" parentId="ITEM1" scope="none" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<DefiningSymbols>
+<SymbolReference symbolId="SYM8"/>
+</DefiningSymbols>
+<UsingSymbols>
+<SymbolReference symbolId="SYM7"/>
+</UsingSymbols>
+</Item>
+<Item id="ITEM4" type="state" name="talk" parentId="ITEM1" scope="none" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<DefiningSymbols>
+<SymbolReference symbolId="SYM20"/>
+</DefiningSymbols>
+<UsingSymbols>
+<SymbolReference symbolId="SYM14"/>
+</UsingSymbols>
+</Item>
+</DictionaryObjects>

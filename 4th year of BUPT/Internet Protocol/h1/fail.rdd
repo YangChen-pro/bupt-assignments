@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE Diagram SYSTEM "rtdsDiagram.dtd">
+
+<MscDiagram message_params_visibility="full">
+<LifelineOrdering identifiers="_SYMBOL_0:left _SYMBOL_2:left _LIFELINE_7 _LIFELINE_6 _LIFELINE_0 _LIFELINE_1 _LIFELINE_3 _LIFELINE_4 _SYMBOL_0:right _SYMBOL_2:right"/>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="PROCESS_START" color="-" text="用户
+" text_size="22 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_6" event_type="PROCESS_START" color="-" text="读卡器
+" text_size="29 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_0" event_type="PROCESS_START" color="-" text="键盘
+" text_size="22 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="PROCESS_START" color="-" text="显示屏
+" text_size="29 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_3" event_type="PROCESS_START" color="-" text="验证系统
+" text_size="36 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_4" event_type="PROCESS_START" color="-" text="管理终端
+" text_size="36 -" background="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_0 _LIFELINE_7 _LIFELINE_3 _LIFELINE_4 _LIFELINE_1 _LIFELINE_6" event_type="MSC_REFERENCE_START" color="-" text="密码输入错误
+" identifier="_SYMBOL_0" background="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent event_type="MSC_REFERENCE_END" color="-" text="密码输入错误
+" identifier="_SYMBOL_0"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_6 _LIFELINE_7" event_type="OPERATION_CALL" color="#000000" text="刷卡
+" identifier="_LINK_1"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_3 _LIFELINE_6" event_type="OPERATION_CALL" color="#000000" text="发送卡号数据
+" identifier="_LINK_5"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_4 _LIFELINE_3" event_type="OPERATION_CALL" color="#000000" text="转发卡号验证
+" identifier="_LINK_8"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_4 _LIFELINE_3" event_type="OPERATION_RETURN" color="#000000" text="卡号有效，请求密码
+" identifier="_LINK_12"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1 _LIFELINE_3" event_type="OPERATION_CALL" color="#000000" text="显示请输入密码
+" identifier="_LINK_15"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_0 _LIFELINE_7 _LIFELINE_3 _LIFELINE_4 _LIFELINE_1 _LIFELINE_6" event_type="INLINE_EXPRESSION_START" color="-" text_size="29 14" type="loop" identifier="_SYMBOL_2"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_0 _LIFELINE_7" event_type="OPERATION_CALL" color="#000000" text="输入密码
+" identifier="_LINK_18"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_3 _LIFELINE_0" event_type="OPERATION_CALL" color="#000000" text="发送密码
+" identifier="_LINK_21"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_4 _LIFELINE_3" event_type="OPERATION_CALL" color="#000000" text="转发密码验证
+" identifier="_LINK_24"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_4 _LIFELINE_3" event_type="OPERATION_RETURN" color="#000000" text="密码错误
+" identifier="_LINK_26"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_3 _LIFELINE_1" event_type="OPERATION_RETURN" color="#000000" text="显示密码错误，剩余次数
+" identifier="_LINK_65"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1 _LIFELINE_3" event_type="OPERATION_CALL" color="#000000" text="更新剩余次数
+" identifier="_LINK_44"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent event_type="INLINE_EXPRESSION_END" color="-" identifier="_SYMBOL_2"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1 _LIFELINE_3" event_type="OPERATION_CALL" color="#000000" text="显示已超出尝试次数
+" identifier="_LINK_47"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_0 _LIFELINE_3" event_type="OPERATION_CALL" color="#000000" text="临时锁定1分钟
+" identifier="_LINK_50"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<PageSpecification pageWidth="21.0" pageHeight="29.7" topMargin="0.0" bottomMargin="0.0" leftMargin="0.0" rightMargin="0.0" pageFooter="FALSE" scaleFactor="1.0"/>
+</MscDiagram>

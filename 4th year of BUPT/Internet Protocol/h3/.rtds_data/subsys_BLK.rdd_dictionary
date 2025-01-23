@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE DictionaryObjects SYSTEM "rtdsDictionaryObjects.dtd">
+
+<DictionaryObjects version="10330" language="none" diagramType="blk">
+<Signal id="SIG1" name="backring">
+</Signal>
+<Signal id="SIG10" name="be_accepted">
+</Signal>
+<Signal id="SIG11" name="release">
+</Signal>
+<Signal id="SIG12" name="callout_failed">
+</Signal>
+<Signal id="SIG13" name="callout_success">
+</Signal>
+<Signal id="SIG14" name="ring">
+</Signal>
+<Signal id="SIG15" name="stop_ring">
+</Signal>
+<Signal id="SIG16" name="callin">
+</Signal>
+<Signal id="SIG17" name="on_hook">
+</Signal>
+<Signal id="SIG18" name="off_hook">
+</Signal>
+<Signal id="SIG2" name="stop_backring">
+</Signal>
+<Signal id="SIG3" name="display">
+</Signal>
+<Signal id="SIG4" name="busyring">
+</Signal>
+<Signal id="SIG5" name="stop_busyring">
+</Signal>
+<Signal id="SIG6" name="callout_ch">
+</Signal>
+<Signal id="SIG7" name="pickup">
+</Signal>
+<Signal id="SIG8" name="hangout">
+</Signal>
+<Signal id="SIG9" name="callout_str">
+</Signal>
+<Item id="ITEM1" type="block" name="subsys_blk" scope="current" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<UsingSymbols>
+<SymbolReference symbolId="SYMB1"/>
+</UsingSymbols>
+<SignalWindow id="SIGWDW8" insideDiagram="TRUE">
+<ConnectorReference linkId="LINK9" isFrom="TRUE"/>
+<Connections>
+<Connection name="userside"/>
+</Connections>
+<SentSignals>
+<SignalReference id="SIG6"/>
+<SignalReference id="SIG7"/>
+<SignalReference id="SIG8"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG1"/>
+<SignalReference id="SIG2"/>
+<SignalReference id="SIG3"/>
+<SignalReference id="SIG4"/>
+<SignalReference id="SIG5"/>
+</ReceivedSignals>
+</SignalWindow>
+<SignalWindow id="SIGWDW9" insideDiagram="TRUE">
+<ConnectorReference linkId="LINK13" isFrom="TRUE"/>
+<Connections>
+<Connection name="_hangout"/>
+<Connection name="pickup_"/>
+</Connections>
+<SentSignals>
+<SignalReference id="SIG8"/>
+<SignalReference id="SIG7"/>
+<SignalReference id="SIG8"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG3"/>
+<SignalReference id="SIG4"/>
+<SignalReference id="SIG5"/>
+<SignalReference id="SIG14"/>
+<SignalReference id="SIG15"/>
+</ReceivedSignals>
+</SignalWindow>
+<SignalWindow id="SIGWDW10" insideDiagram="TRUE">
+<ConnectorReference linkId="LINK26" isFrom="FALSE"/>
+<SentSignals>
+<SignalReference id="SIG13"/>
+<SignalReference id="SIG11"/>
+<SignalReference id="SIG16"/>
+<SignalReference id="SIG12"/>
+<SignalReference id="SIG10"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG9"/>
+<SignalReference id="SIG17"/>
+<SignalReference id="SIG18"/>
+</ReceivedSignals>
+</SignalWindow>
+<Channel name="callerside" fromSignalWindow="SIGWDW8" toSignalWindow="SIGWDW1"/>
+<Channel name="(new channel)" fromSignalWindow="SIGWDW2" toSignalWindow="SIGWDW5"/>
+<Channel name="calledside" fromSignalWindow="SIGWDW9" toSignalWindow="SIGWDW3"/>
+<Channel name="(new channel)" fromSignalWindow="SIGWDW4" toSignalWindow="SIGWDW6"/>
+<Channel name="(new channel)" fromSignalWindow="SIGWDW7" toSignalWindow="SIGWDW10"/>
+</Item>
+<Item id="ITEM2" type="process" name="caller_proc" parentId="ITEM1" scope="none" minInstances="1" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<DefiningSymbols>
+<SymbolReference symbolId="SYMB2"/>
+</DefiningSymbols>
+<UsingSymbols>
+<SymbolReference symbolId="SYMB2"/>
+</UsingSymbols>
+<SignalWindow id="SIGWDW1" insideDiagram="FALSE">
+<ConnectorReference linkId="LINK9" isFrom="FALSE"/>
+<SentSignals>
+<SignalReference id="SIG1"/>
+<SignalReference id="SIG2"/>
+<SignalReference id="SIG3"/>
+<SignalReference id="SIG4"/>
+<SignalReference id="SIG5"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG6"/>
+<SignalReference id="SIG7"/>
+<SignalReference id="SIG8"/>
+</ReceivedSignals>
+</SignalWindow>
+<SignalWindow id="SIGWDW2" insideDiagram="FALSE">
+<ConnectorReference linkId="LINK25" isFrom="TRUE"/>
+<SentSignals>
+<SignalReference id="SIG9"/>
+<SignalReference id="SIG8"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG10"/>
+<SignalReference id="SIG11"/>
+<SignalReference id="SIG12"/>
+<SignalReference id="SIG13"/>
+</ReceivedSignals>
+</SignalWindow>
+</Item>
+<Item id="ITEM3" type="process" name="called_proc" parentId="ITEM1" scope="none" minInstances="1" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<DefiningSymbols>
+<SymbolReference symbolId="SYMB3"/>
+</DefiningSymbols>
+<UsingSymbols>
+<SymbolReference symbolId="SYMB3"/>
+</UsingSymbols>
+<SignalWindow id="SIGWDW4" insideDiagram="FALSE">
+<ConnectorReference linkId="LINK24" isFrom="TRUE"/>
+<SentSignals>
+<SignalReference id="SIG8"/>
+<SignalReference id="SIG7"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG11"/>
+<SignalReference id="SIG16"/>
+</ReceivedSignals>
+</SignalWindow>
+<SignalWindow id="SIGWDW3" insideDiagram="FALSE">
+<ConnectorReference linkId="LINK13" isFrom="FALSE"/>
+<SentSignals>
+<SignalReference id="SIG3"/>
+<SignalReference id="SIG4"/>
+<SignalReference id="SIG5"/>
+<SignalReference id="SIG14"/>
+<SignalReference id="SIG15"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG8"/>
+<SignalReference id="SIG7"/>
+<SignalReference id="SIG8"/>
+</ReceivedSignals>
+</SignalWindow>
+</Item>
+<Item id="ITEM4" type="process" name="manager_proc" parentId="ITEM1" scope="none" minInstances="1" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<DefiningSymbols>
+<SymbolReference symbolId="SYMB4"/>
+</DefiningSymbols>
+<UsingSymbols>
+<SymbolReference symbolId="SYMB4"/>
+</UsingSymbols>
+<SignalWindow id="SIGWDW5" insideDiagram="FALSE">
+<ConnectorReference linkId="LINK25" isFrom="FALSE"/>
+<SentSignals>
+<SignalReference id="SIG10"/>
+<SignalReference id="SIG11"/>
+<SignalReference id="SIG12"/>
+<SignalReference id="SIG13"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG9"/>
+<SignalReference id="SIG8"/>
+</ReceivedSignals>
+</SignalWindow>
+<SignalWindow id="SIGWDW6" insideDiagram="FALSE">
+<ConnectorReference linkId="LINK24" isFrom="FALSE"/>
+<SentSignals>
+<SignalReference id="SIG11"/>
+<SignalReference id="SIG16"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG8"/>
+<SignalReference id="SIG7"/>
+</ReceivedSignals>
+</SignalWindow>
+<SignalWindow id="SIGWDW7" insideDiagram="FALSE">
+<ConnectorReference linkId="LINK26" isFrom="TRUE"/>
+<SentSignals>
+<SignalReference id="SIG9"/>
+<SignalReference id="SIG17"/>
+<SignalReference id="SIG18"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG13"/>
+<SignalReference id="SIG11"/>
+<SignalReference id="SIG16"/>
+<SignalReference id="SIG12"/>
+<SignalReference id="SIG10"/>
+</ReceivedSignals>
+</SignalWindow>
+</Item>
+</DictionaryObjects>

@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE Diagram SYSTEM "rtdsDiagram.dtd">
+
+<MscDiagram message_params_visibility="full">
+<LifelineOrdering identifiers="_SYMBOL_17:left _SYMBOL_29:left _LIFELINE_7 _LIFELINE_1 _SYMBOL_17:right _LIFELINE_2 _SYMBOL_29:right"/>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="PROCESS_START" color="-" text="主叫用户侧
+" text_size="43 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="PROCESS_START" color="-" text="呼叫处理子系统
+" text_size="57 -" background="-"/>
+<MscEvent lifeline_ids="_LIFELINE_2" event_type="PROCESS_START" color="-" text="基站
+" text_size="22 -" background="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="CONDITION_START" color="-" text="空闲
+" identifier="_SYMBOL_16" background="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent event_type="CONDITION_END" color="-" text="空闲
+" identifier="_SYMBOL_16"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_7 _LIFELINE_1" event_type="INLINE_EXPRESSION_START" color="-" text_size="29 14" type="loop" identifier="_SYMBOL_17"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="MESSAGE_SEND" color="#000000" text="拨号（x）
+" identifier="_LINK_324"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_RECEIVE" color="#000000" text="拨号（x）
+" identifier="_LINK_324"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_SEND" color="#000000" text="增加显示一位‘x’
+" identifier="_LINK_276"/>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="MESSAGE_RECEIVE" color="#000000" text="增加显示一位‘x’
+" identifier="_LINK_276"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent event_type="INLINE_EXPRESSION_END" color="-" identifier="_SYMBOL_17"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="MESSAGE_SEND" color="#000000" text="呼叫
+" identifier="_LINK_321"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_RECEIVE" color="#000000" text="呼叫
+" identifier="_LINK_321"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="SEGMENT_START" color="black" identifier="_LIFELINE_1/0" type="COREGION_SEGMENT"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_SEND" color="#000000" text="显示“正在呼出”和被叫号码
+" identifier="_LINK_279"/>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="MESSAGE_RECEIVE" color="#000000" text="显示“正在呼出”和被叫号码
+" identifier="_LINK_279"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_SEND" color="#000000" text="呼出（被叫号码）
+" identifier="_LINK_287"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="SEGMENT_END" color="black" identifier="_LIFELINE_1/0"/>
+<MscEvent lifeline_ids="_LIFELINE_2" event_type="MESSAGE_RECEIVE" color="#000000" text="呼出（被叫号码）
+" identifier="_LINK_287"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="CONDITION_START" color="-" text="呼出
+" identifier="_SYMBOL_0" background="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent event_type="CONDITION_END" color="-" text="呼出
+" identifier="_SYMBOL_0"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_2" event_type="MESSAGE_SEND" color="#000000" text="呼入（主叫号码）
+" identifier="_LINK_306"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_2" event_type="MESSAGE_SEND" color="#000000" text="呼出成功
+" identifier="_LINK_311"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_RECEIVE" color="#000000" text="呼出成功
+" identifier="_LINK_311"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_SEND" color="#000000" text="播放回铃音
+" identifier="_LINK_314"/>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="MESSAGE_RECEIVE" color="#000000" text="播放回铃音
+" identifier="_LINK_314"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="TIMER_START" color="-" text="60s
+" type="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_2" event_type="MESSAGE_RECEIVE" color="#000000" text="摘机应答（被叫号码）
+" identifier="_LINK_330"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_2" event_type="MESSAGE_SEND" color="#000000" text="被叫应答
+" identifier="_LINK_336"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_RECEIVE" color="#000000" text="被叫应答
+" identifier="_LINK_336"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="TIMER_CANCEL" color="-" text="
+" type="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="SEGMENT_START" color="-" identifier="_LIFELINE_1/10" type="COREGION_SEGMENT"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_SEND" color="#000000" text="停回铃音
+" identifier="_LINK_454"/>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="MESSAGE_RECEIVE" color="#000000" text="停回铃音
+" identifier="_LINK_454"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_SEND" color="#000000" text="显示”正在通话“和被叫号码
+" identifier="_LINK_339"/>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="MESSAGE_RECEIVE" color="#000000" text="显示”正在通话“和被叫号码
+" identifier="_LINK_339"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="SEGMENT_END" color="-" identifier="_LIFELINE_1/10"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_7 _LIFELINE_1 _LIFELINE_2" event_type="CONDITION_START" color="-" text="通话
+" identifier="_SYMBOL_28" background="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent event_type="CONDITION_END" color="-" text="通话
+" identifier="_SYMBOL_28"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_7 _LIFELINE_1 _LIFELINE_2" event_type="MSC_REFERENCE_START" color="-" text="通话
+" identifier="_SYMBOL_29" background="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent event_type="MSC_REFERENCE_END" color="-" text="通话
+" identifier="_SYMBOL_29"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_2" event_type="MESSAGE_RECEIVE" color="#000000" text="挂机（被叫号码）
+" identifier="_LINK_418"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_2" event_type="MESSAGE_SEND" color="#000000" text="释放
+" identifier="_LINK_421"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_RECEIVE" color="#000000" text="释放
+" identifier="_LINK_421"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="SEGMENT_START" color="black" identifier="_LIFELINE_1/1" type="COREGION_SEGMENT"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_SEND" color="#000000" text="显示”用户忙“
+" identifier="_LINK_424"/>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="MESSAGE_RECEIVE" color="#000000" text="显示”用户忙“
+" identifier="_LINK_424"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_SEND" color="#000000" text="送忙音
+" identifier="_LINK_427"/>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="MESSAGE_RECEIVE" color="#000000" text="送忙音
+" identifier="_LINK_427"/>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="SEGMENT_END" color="black" identifier="_LIFELINE_1/1"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="TIMER_START" color="-" text="60s
+" type="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="MESSAGE_SEND" color="#000000" text="停忙音
+" identifier="_LINK_457"/>
+<MscEvent lifeline_ids="_LIFELINE_7" event_type="MESSAGE_RECEIVE" color="#000000" text="停忙音
+" identifier="_LINK_457"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent lifeline_ids="_LIFELINE_1" event_type="CONDITION_START" color="-" text="空闲
+" identifier="_SYMBOL_5" background="-"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent event_type="CONDITION_END" color="-" text="空闲
+" identifier="_SYMBOL_5"/>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<MscEventRow>
+<MscEvent event_type="ABSOLUTE_TIME" color="#000000" text=""/>
+</MscEventRow>
+<PageSpecification pageWidth="21.0" pageHeight="29.7" topMargin="0.0" bottomMargin="0.0" leftMargin="0.0" rightMargin="0.0" pageFooter="FALSE" scaleFactor="1.0"/>
+</MscDiagram>

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE DictionaryObjects SYSTEM "rtdsDictionaryObjects.dtd">
+
+<DictionaryObjects version="10330" language="none" diagramType="blk">
+<Signal id="SIG1" name="callout_success">
+</Signal>
+<Signal id="SIG2" name="be_accepted">
+</Signal>
+<Signal id="SIG3" name="release">
+</Signal>
+<Signal id="SIG4" name="callin">
+</Signal>
+<Signal id="SIG5" name="callout_failed">
+</Signal>
+<Signal id="SIG6" name="callout_str">
+</Signal>
+<Signal id="SIG7" name="on_hook">
+</Signal>
+<Signal id="SIG8" name="off_hook">
+</Signal>
+<Item id="ITEM1" type="block" name="base_blk" scope="current" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<UsingSymbols>
+<SymbolReference symbolId="SYMB1"/>
+</UsingSymbols>
+<SignalWindow id="SIGWDW2" insideDiagram="TRUE">
+<ConnectorReference linkId="LINK3" isFrom="FALSE"/>
+<Connections>
+<Connection name="sysside"/>
+</Connections>
+<SentSignals>
+<SignalReference id="SIG6"/>
+<SignalReference id="SIG7"/>
+<SignalReference id="SIG8"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG1"/>
+<SignalReference id="SIG2"/>
+<SignalReference id="SIG3"/>
+<SignalReference id="SIG4"/>
+<SignalReference id="SIG5"/>
+</ReceivedSignals>
+</SignalWindow>
+<Channel name="(new channel)" fromSignalWindow="SIGWDW1" toSignalWindow="SIGWDW2"/>
+</Item>
+<Item id="ITEM2" type="process" name="base_proc" parentId="ITEM1" scope="none" minInstances="1" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<DefiningSymbols>
+<SymbolReference symbolId="SYMB2"/>
+</DefiningSymbols>
+<UsingSymbols>
+<SymbolReference symbolId="SYMB2"/>
+</UsingSymbols>
+<SignalWindow id="SIGWDW1" insideDiagram="FALSE">
+<ConnectorReference linkId="LINK3" isFrom="TRUE"/>
+<SentSignals>
+<SignalReference id="SIG1"/>
+<SignalReference id="SIG2"/>
+<SignalReference id="SIG3"/>
+<SignalReference id="SIG4"/>
+<SignalReference id="SIG5"/>
+</SentSignals>
+<ReceivedSignals>
+<SignalReference id="SIG6"/>
+<SignalReference id="SIG7"/>
+<SignalReference id="SIG8"/>
+</ReceivedSignals>
+</SignalWindow>
+</Item>
+</DictionaryObjects>

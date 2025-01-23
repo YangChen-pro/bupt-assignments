@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE Diagram SYSTEM "rtdsDiagram.dtd">
+
+<SdlFSMDiagram language="sdl" type="prcs" is_extract="FALSE" is_temporary="FALSE">
+<SdlFSMPartition name="" needs_cleanup="FALSE">
+<NonStateTransition top_left_coordinates="64 144">
+<SdlFSMSymbol identifier="SYM1" type="sdlStart" outline_color="-" background_color="-" center_coordinates="94 159" dimensions="60 30" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM2" type="sdlState" text="idle" outline_color="-" background_color="-" center_coordinates="94 206" dimensions="60 40" attached_symbol_id=""/>
+</Transition>
+</NonStateTransition>
+<StateTransitionBlock top_left_coordinates="203 142">
+<SdlFSMSymbol identifier="SYM7" type="sdlState" text="idle" outline_color="-" background_color="-" center_coordinates="248 162" dimensions="60 40" attached_symbol_id=""/>
+<NormalStateTransition>
+<SdlFSMSymbol identifier="SYM8" type="sdlInputSig" text="callout_ch" outline_color="-" background_color="-" center_coordinates="248 214" dimensions="90 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM13" type="sdlSendSig" text="display" outline_color="-" background_color="-" center_coordinates="248 266" dimensions="68 40" attached_symbol_id=""/>
+<DecisionBlock>
+<SdlFSMSymbol identifier="SYM10" type="sdlDecision" text="is_finish" outline_color="-" background_color="-" center_coordinates="248 318" dimensions="82 40" attached_symbol_id=""/>
+<DecisionBranch>
+<SdlFSMSymbol identifier="SYM11" type="sdlAnswer" text="no" outline_color="-" background_color="-" center_coordinates="248 370" dimensions="60 40" attached_symbol_id=""/>
+<Transition>
+</Transition>
+</DecisionBranch>
+<DecisionBranch>
+<SdlFSMSymbol identifier="SYM12" type="sdlAnswer" text="yes" outline_color="-" background_color="-" center_coordinates="318 370" dimensions="60 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM15" type="sdlState" text="work" outline_color="-" background_color="-" center_coordinates="318 422" dimensions="60 40" attached_symbol_id=""/>
+</Transition>
+</DecisionBranch>
+</DecisionBlock>
+<SdlFSMSymbol identifier="SYM9" type="sdlState" text="wait" outline_color="-" background_color="-" center_coordinates="248 486" dimensions="60 40" attached_symbol_id=""/>
+</Transition>
+</NormalStateTransition>
+</StateTransitionBlock>
+<StateTransitionBlock top_left_coordinates="426 139">
+<SdlFSMSymbol identifier="SYM17" type="sdlState" text="wait" outline_color="-" background_color="-" center_coordinates="471 159" dimensions="60 40" attached_symbol_id=""/>
+<NormalStateTransition>
+<SdlFSMSymbol identifier="SYM18" type="sdlInputSig" text="callout_ch" outline_color="-" background_color="-" center_coordinates="471 211" dimensions="90 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM19" type="sdlSendSig" text="display" outline_color="-" background_color="-" center_coordinates="471 263" dimensions="68 40" attached_symbol_id=""/>
+<DecisionBlock>
+<SdlFSMSymbol identifier="SYM20" type="sdlDecision" text="is_finish" outline_color="-" background_color="-" center_coordinates="471 315" dimensions="82 40" attached_symbol_id=""/>
+<DecisionBranch>
+<SdlFSMSymbol identifier="SYM21" type="sdlAnswer" text="no" outline_color="-" background_color="-" center_coordinates="471 367" dimensions="60 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM24" type="sdlState" text="wait" outline_color="-" background_color="-" center_coordinates="471 419" dimensions="60 40" attached_symbol_id=""/>
+</Transition>
+</DecisionBranch>
+<DecisionBranch>
+<SdlFSMSymbol identifier="SYM22" type="sdlAnswer" text="yes" outline_color="-" background_color="-" center_coordinates="541 367" dimensions="60 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM23" type="sdlState" text="work" outline_color="-" background_color="-" center_coordinates="541 419" dimensions="60 40" attached_symbol_id=""/>
+</Transition>
+</DecisionBranch>
+</DecisionBlock>
+</Transition>
+</NormalStateTransition>
+</StateTransitionBlock>
+<StateTransitionBlock top_left_coordinates="671 142">
+<SdlFSMSymbol identifier="SYM25" type="sdlState" text="work" outline_color="-" background_color="-" center_coordinates="709 162" dimensions="60 40" attached_symbol_id=""/>
+<NormalStateTransition>
+<SdlFSMSymbol identifier="SYM26" type="sdlInputSig" text="pickup" outline_color="-" background_color="-" center_coordinates="709 214" dimensions="62 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM27" type="sdlSendSig" text="call_out" outline_color="-" background_color="-" center_coordinates="709 266" dimensions="76 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM32" type="sdlSendSig" text="display" outline_color="-" background_color="-" center_coordinates="709 318" dimensions="68 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM28" type="sdlState" text="listen" outline_color="-" background_color="-" center_coordinates="709 370" dimensions="62 40" attached_symbol_id=""/>
+</Transition>
+</NormalStateTransition>
+</StateTransitionBlock>
+<StateTransitionBlock top_left_coordinates="868 142">
+<SdlFSMSymbol identifier="SYM29" type="sdlState" text="listen" outline_color="-" background_color="-" center_coordinates="930 162" dimensions="62 40" attached_symbol_id=""/>
+<NormalStateTransition>
+<SdlFSMSymbol identifier="SYM30" type="sdlInputSig" text="callout_success" outline_color="-" background_color="-" center_coordinates="930 214" dimensions="124 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM31" type="sdlSendSig" text="backring" outline_color="-" background_color="-" center_coordinates="930 266" dimensions="76 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM45" type="sdlSendSig" text="display" outline_color="-" background_color="-" center_coordinates="930 318" dimensions="68 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM35" type="sdlState" text="waitpick" outline_color="-" background_color="-" center_coordinates="930 370" dimensions="76 40" attached_symbol_id=""/>
+</Transition>
+</NormalStateTransition>
+<NormalStateTransition>
+<SdlFSMSymbol identifier="SYM33" type="sdlInputSig" text="callout_failed" outline_color="-" background_color="-" center_coordinates="1061 214" dimensions="118 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM46" type="sdlSendSig" text="busyring" outline_color="-" background_color="-" center_coordinates="1061 266" dimensions="76 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM59" type="sdlInitTimer" text="T1" outline_color="-" background_color="-" center_coordinates="1061 318" dimensions="72 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM34" type="sdlSendSig" text="display" outline_color="-" background_color="-" center_coordinates="1061 370" dimensions="68 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM36" type="sdlState" text="wait_end" outline_color="-" background_color="-" center_coordinates="1061 422" dimensions="76 40" attached_symbol_id=""/>
+</Transition>
+</NormalStateTransition>
+</StateTransitionBlock>
+<StateTransitionBlock top_left_coordinates="1244 145">
+<SdlFSMSymbol identifier="SYM38" type="sdlState" text="wait_pick" outline_color="-" background_color="-" center_coordinates="1285 165" dimensions="82 40" attached_symbol_id=""/>
+<NormalStateTransition>
+<SdlFSMSymbol identifier="SYM40" type="sdlInputSig" text="release" outline_color="-" background_color="-" center_coordinates="1285 217" dimensions="68 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM47" type="sdlSendSig" text="busyring" outline_color="-" background_color="-" center_coordinates="1285 269" dimensions="76 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM60" type="sdlInitTimer" text="T1" outline_color="-" background_color="-" center_coordinates="1285 321" dimensions="72 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM48" type="sdlSendSig" text="display" outline_color="-" background_color="-" center_coordinates="1285 373" dimensions="68 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM49" type="sdlState" text="wait_end" outline_color="-" background_color="-" center_coordinates="1285 425" dimensions="76 40" attached_symbol_id=""/>
+</Transition>
+</NormalStateTransition>
+<NormalStateTransition>
+<SdlFSMSymbol identifier="SYM42" type="sdlInputSig" text="be_acepted" outline_color="-" background_color="-" center_coordinates="1388 217" dimensions="90 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM50" type="sdlSendSig" text="stop_backring" outline_color="-" background_color="-" center_coordinates="1388 269" dimensions="110 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM51" type="sdlSendSig" text="display" outline_color="-" background_color="-" center_coordinates="1388 321" dimensions="68 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM52" type="sdlState" text="talk" outline_color="-" background_color="-" center_coordinates="1388 373" dimensions="60 40" attached_symbol_id=""/>
+</Transition>
+</NormalStateTransition>
+</StateTransitionBlock>
+<StateTransitionBlock top_left_coordinates="60 612">
+<SdlFSMSymbol identifier="SYM53" type="sdlState" text="talk" outline_color="-" background_color="-" center_coordinates="94 632" dimensions="60 40" attached_symbol_id=""/>
+<NormalStateTransition>
+<SdlFSMSymbol identifier="SYM54" type="sdlInputSig" text="hangout" outline_color="-" background_color="-" center_coordinates="94 684" dimensions="68 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM56" type="sdlSendSig" text="hangout" outline_color="-" background_color="-" center_coordinates="94 736" dimensions="68 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM57" type="sdlState" text="idle" outline_color="-" background_color="-" center_coordinates="94 788" dimensions="60 40" attached_symbol_id=""/>
+</Transition>
+</NormalStateTransition>
+<NormalStateTransition>
+<SdlFSMSymbol identifier="SYM55" type="sdlInputSig" text="release" outline_color="-" background_color="-" center_coordinates="172 684" dimensions="68 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM58" type="sdlState" text="idle" outline_color="-" background_color="-" center_coordinates="172 736" dimensions="60 40" attached_symbol_id=""/>
+</Transition>
+</NormalStateTransition>
+</StateTransitionBlock>
+<StateTransitionBlock top_left_coordinates="404 615">
+<SdlFSMSymbol identifier="SYM61" type="sdlState" text="wait" outline_color="-" background_color="-" center_coordinates="459 635" dimensions="60 40" attached_symbol_id=""/>
+<NormalStateTransition>
+<SdlFSMSymbol identifier="SYM62" type="sdlInputSig" text="T1" outline_color="-" background_color="-" center_coordinates="459 687" dimensions="60 40" attached_symbol_id=""/>
+<Transition>
+<SdlFSMSymbol identifier="SYM63" type="sdlSendSig" text="stop_busyring" outline_color="-" background_color="-" center_coordinates="459 739" dimensions="110 40" attached_symbol_id=""/>
+<SdlFSMSymbol identifier="SYM64" type="sdlState" text="idle" outline_color="-" background_color="-" center_coordinates="459 791" dimensions="60 40" attached_symbol_id=""/>
+</Transition>
+</NormalStateTransition>
+</StateTransitionBlock>
+<PageSpecification pageWidth="21.0" pageHeight="29.7" topMargin="1.0" bottomMargin="1.0" leftMargin="1.0" rightMargin="1.0" pageFooter="TRUE" scaleFactor="1.0"/>
+</SdlFSMPartition>
+</SdlFSMDiagram>

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE DictionaryObjects SYSTEM "rtdsDictionaryObjects.dtd">
+
+<DictionaryObjects version="10330" language="none" diagramType="msc">
+<Item id="ITEM1" type="package" name="" scope="current" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+</Item>
+<Item id="ITEM2" type="process" name="主叫" scope="global" defined="FALSE" anchorItemId="ITEM1" searchPolicy="1" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<AlternateType type="system"/>
+<AlternateType type="block"/>
+<UsingSymbols>
+<SymbolReference symbolId="_LIFELINE_0"/>
+</UsingSymbols>
+</Item>
+<Item id="ITEM3" type="process" name="键盘" scope="global" defined="FALSE" anchorItemId="ITEM1" searchPolicy="1" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<AlternateType type="system"/>
+<AlternateType type="block"/>
+<UsingSymbols>
+<SymbolReference symbolId="_LIFELINE_1"/>
+</UsingSymbols>
+</Item>
+<Item id="ITEM4" type="process" name="显示器" scope="global" defined="FALSE" anchorItemId="ITEM1" searchPolicy="1" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<AlternateType type="system"/>
+<AlternateType type="block"/>
+<UsingSymbols>
+<SymbolReference symbolId="_LIFELINE_5"/>
+<SymbolReference symbolId="_LIFELINE_2"/>
+</UsingSymbols>
+</Item>
+<Item id="ITEM5" type="process" name="扬声器" scope="global" defined="FALSE" anchorItemId="ITEM1" searchPolicy="1" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<AlternateType type="system"/>
+<AlternateType type="block"/>
+<UsingSymbols>
+<SymbolReference symbolId="_LIFELINE_5"/>
+<SymbolReference symbolId="_LIFELINE_7"/>
+<SymbolReference symbolId="_LIFELINE_3"/>
+</UsingSymbols>
+</Item>
+<Item id="ITEM6" type="process" name="基于硬件系统的控制软件" scope="global" defined="FALSE" anchorItemId="ITEM1" searchPolicy="1" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<AlternateType type="system"/>
+<AlternateType type="block"/>
+<UsingSymbols>
+<SymbolReference symbolId="_LIFELINE_5"/>
+</UsingSymbols>
+</Item>
+<Item id="ITEM7" type="process" name="基站" scope="global" defined="FALSE" anchorItemId="ITEM1" searchPolicy="1" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<AlternateType type="system"/>
+<AlternateType type="block"/>
+<UsingSymbols>
+<SymbolReference symbolId="_LIFELINE_5"/>
+<SymbolReference symbolId="_LIFELINE_4"/>
+</UsingSymbols>
+</Item>
+<Item id="ITEM8" type="process" name="被叫" scope="global" defined="FALSE" anchorItemId="ITEM1" searchPolicy="1" formalParameterOrder="-" isFormalParam="FALSE" isSyntype="FALSE">
+<AlternateType type="system"/>
+<AlternateType type="block"/>
+<UsingSymbols>
+<SymbolReference symbolId="_LIFELINE_11"/>
+<SymbolReference symbolId="_LIFELINE_6"/>
+</UsingSymbols>
+</Item>
+</DictionaryObjects>
