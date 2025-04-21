@@ -40,6 +40,16 @@
 | 第一学期 | Web开发技术 | [🕸️ 全栈应用](4th%20year%20of%20BUPT/Web%20Development%20Technologies) | Spring Boot, Vue.js |
 | | 嵌入式系统体系结构及应用 | [🔧 硬件集成](4th%20year%20of%20BUPT/Embedded%20system%20architecture%20and%20applications) | 嵌入式系统基础知识 |
 
+## 🎓 毕业论文资源
+
+> 🚀 **强烈推荐**: 对于熟悉 LaTeX 的同学，强烈建议使用此 **北邮本科毕业论文 LaTeX 模板**。
+>
+> [BUPTBachelorThesis Template](https://gitcode.com/gh_mirrors/bup/BUPTBachelorThesis.git)
+>
+> 使用该模板可以显著节省排版时间，让你更专注于论文内容本身。
+>
+> ✨ **特别鸣谢**: 感谢该模板项目的所有贡献者！
+
 ## 🤝 合作与社区
 
 ### 👥 技术伙伴
