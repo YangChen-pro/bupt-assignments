@@ -44,7 +44,7 @@
 
 > 🚀 **强烈推荐**: 对于熟悉 LaTeX 的同学，强烈建议使用此 **北邮本科毕业论文 LaTeX 模板**。
 >
-> [BUPTBachelorThesis Template](https://gitcode.com/gh_mirrors/bup/BUPTBachelorThesis.git)
+> [BUPTBachelorThesis Template](https://github.com/BYRIO/BUPTBachelorThesis)
 >
 > 使用该模板可以显著节省排版时间，让你更专注于论文内容本身。
 >
